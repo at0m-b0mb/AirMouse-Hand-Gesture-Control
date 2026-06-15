@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv
+venv/
+
+# Model file — downloaded automatically on first run (~8 MB)
+hand_landmarker.task
+
+# Local camera config — auto-generated
+config.json

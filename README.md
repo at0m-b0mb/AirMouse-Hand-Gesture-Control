@@ -1,90 +1,154 @@
-# AirMouse-Hand-Gesture-Control
+# AirMouse — Hand Gesture Control
 
-## Overview
-AirMouse-Hand-Gesture-Control is a Python-based project that allows users to control their mouse with hand gestures using a webcam. The hand gestures are tracked using MediaPipe and OpenCV, while Autopy enables smooth mouse movement and clicking actions. 
+Control your laptop **entirely with your hand** — no keyboard, no mouse, no touchpad. AirMouse uses your webcam and real-time hand tracking (MediaPipe) to turn gestures into precise cursor movement, clicks, scrolling, dragging, and typing through an on-screen virtual keyboard.
 
-This repository contains two versions of the project:
-1. **Standalone Air Mouse:** A single script that runs locally and controls the mouse using hand gestures.
-2. **Client-Server Version:** This version implements a client-server architecture, enabling remote control of the mouse using gestures.
+[![Demo](demo/AirMouse_Demo.png)](demo/AirMouse_Demo.mp4)
+
+---
 
 ## Features
-- **Hand Gesture Recognition**: Tracks index finger for mouse movement, and uses pinch gestures to perform left and right clicks.
-- **Smooth Mouse Movement**: The movement is smoothed for more natural control.
-- **Client-Server Mode**: Allows for controlling a mouse remotely across devices.
 
-## Gesture Controls
-- **Move Mouse**: Move your hand in front of the camera to move the mouse.
-- **Left Click**: Pinch index finger and thumb together.
-- **Right Click**: Pinch middle finger and thumb together.
+| Feature | Description |
+|---|---|
+| **Cursor control** | Index fingertip → tracks across the full screen |
+| **Left click** | Pinch thumb + index finger |
+| **Right click** | Pinch thumb + middle finger |
+| **Scroll** | Peace sign (index + middle up), move hand up/down |
+| **Drag** | Fist to start, open hand to release |
+| **Virtual keyboard** | Hold open palm 1 s to toggle; pinch keys to type |
+| **Auto camera** | Scans all ports on first run, saves to config.json |
+| **Full screen mapping** | Detects screen resolution — central 76% of frame → 100% of screen |
+| **Smooth cursor** | Exponential moving average filter to eliminate jitter |
+| **Client/Server mode** | Stream gestures from one machine, control another on same network |
 
-## Demo Video
-[![AirMouse Demo](demo/AirMouse_Demo.png)](demo/AirMouse_Demo.mp4)
+---
 
-Click the image to view the demo video.
+## Gesture Reference
+
+```
+Hand pose                   Action
+──────────────────────────  ────────────────────────────────
+Index finger pointing       Move cursor
+Pinch thumb + index         Left click
+Pinch thumb + middle        Right click
+Index + middle up (peace)   Scroll — move hand up/down
+Fist (all fingers curled)   Drag — fist to grab, open to drop
+Open palm, hold 1 second    Toggle virtual keyboard
+Q or ESC                    Quit
+```
+
+**In keyboard mode:**
+- Hand cursor hovers over the on-screen QWERTY layout (lower half of camera window)
+- Pinch to press the highlighted key
+- `⇧ SHIFT` auto-resets after one character
+- Hold open palm for 1 s again to return to mouse mode
+
+---
 
 ## Installation
-### Clone the repository:
+
 ```bash
 git clone https://github.com/at0m-b0mb/AirMouse-Hand-Gesture-Control.git
 cd AirMouse-Hand-Gesture-Control
-```
-
-### Install dependencies:
-```bash
 pip install -r requirements.txt
 ```
 
-### Dependencies
-```bash
-opencv-python
-mediapipe
-autopy
-numpy
-```
+> **Note:** `autopy` has been replaced with `pynput` — it is no longer required and has been removed from requirements.
 
-You can find these in the **`requirements.txt`** file.
-___
+### macOS permissions (required)
+
+Grant both in **System Settings → Privacy & Security**:
+- **Camera** → Terminal (or your Python interpreter)
+- **Accessibility** → Terminal (needed for mouse/keyboard control)
+
+---
 
 ## Usage
-### Simple AirMouse Mode:
-This is the basic version that works locally on a single machine.
-- Run the **`AirMouse.py`** file:
+
+### Standalone mode (one machine)
+
 ```bash
 python AirMouse.py
 ```
-- Your webcam will open, and you can start using your hand as a mouse!
 
+On first run the hand-tracking model (~8 MB) is downloaded automatically. Camera index is auto-detected and saved to `config.json`.
 
-### Client-Server Mode:
-This mode allows the mouse control to be transmitted from a client to a server remotely.
-- Running the Server **`AirMouse_Server.py`** file:
+### Client / Server mode (two machines on the same network)
 
-On the machine where you want the mouse to be controlled (Server):
+Run on the machine you want to **control** (the server):
 ```bash
 python AirMouse_Server.py
 ```
-- Running the Client: **`AirMouse_Client.py`** file:
 
-On the machine where the gestures will be captured (Client):
+Run on the machine with the **camera** (the client):
 ```bash
-python AirMouse_Client.py
+python AirMouse_Client.py <server_ip>
 ```
-- Ensure the server and client are on the same network, and adjust the IP addresses in the script accordingly.
 
-___
+---
 
-## How it Works
-- The application uses the MediaPipe library for hand landmark detection and tracking.
-- The index, middle, and thumb fingers' coordinates are captured and processed to determine hand gestures.
-- These coordinates are mapped to the screen's resolution to simulate mouse movement.
-- The left and right click events are triggered based on the distance between the fingers (pinch gesture).
+## Configuration
 
-## Future Improvements
-- Add support for more gestures (e.g., scrolling, dragging).
-- Improve the accuracy of click detection.
-- Enhance robustness by using machine learning models for gesture classification.
-- Adding Face Authentication
+`config.json` is auto-created on first run. Edit it to tune behaviour:
 
-## Contributing
-Feel free to fork the project, make improvements, and create a pull request. Any contribution that makes AirMouse better is welcome!
+| Key | Default | Description |
+|---|---|---|
+| `camera_index` | auto | Webcam index; set manually if auto-detection picks the wrong one |
+| `smoothing` | 0.18 | EMA alpha for cursor (0 = frozen, 1 = raw/jittery) |
+| `sensitivity` | 1.3 | Cursor speed multiplier |
+| `cursor_margin` | 0.12 | Edge fraction ignored; central 76% of frame → full screen |
+| `dead_zone` | 0.008 | Minimum movement to update cursor |
+| `click_threshold` | 0.06 | Pinch distance to trigger click (relative to hand size) |
+| `click_cooldown` | 0.38 | Minimum seconds between clicks |
+| `scroll_speed` | 3 | Lines per scroll tick |
+| `keyboard_toggle_hold` | 1.0 | Seconds of open palm to toggle keyboard |
+| `flip` | true | Mirror the camera image |
+| `detection_confidence` | 0.75 | MediaPipe detection threshold |
+| `tracking_confidence` | 0.5 | MediaPipe tracking threshold |
 
+---
+
+## Architecture
+
+```
+AirMouse.py              Standalone entry point — camera loop, gesture dispatch, HUD
+AirMouse_Client.py       Client: streams landmark data to AirMouse_Server.py
+AirMouse_Server.py       Server: drives mouse from streamed landmark data
+config.py                Config dataclass + JSON persistence (config.json)
+src/
+  camera.py              Auto-detect camera port, warm-up, open at target resolution
+  hand_tracker.py        MediaPipe HandLandmarker (Tasks API) — auto-downloads model
+  gesture.py             Classify 21 landmarks → Gesture enum (move/click/scroll/drag)
+  mouse.py               pynput mouse/keyboard with EMA smoothing; pyautogui fallback
+  virtual_keyboard.py    QWERTY overlay rendered into the OpenCV camera frame
+```
+
+---
+
+## Troubleshooting
+
+**Cursor won't move / clicks don't fire**
+→ Grant Accessibility to Terminal in System Settings → Privacy & Security → Accessibility.
+
+**Camera not found**
+→ Grant Camera access. Set `camera_index` in `config.json` to `0`, `1`, or `2` manually.
+
+**Jittery cursor**
+→ Lower `smoothing` (e.g. `0.10`). Ensure good lighting.
+
+**Cursor doesn't reach screen edges**
+→ Lower `cursor_margin` (e.g. `0.08`) or raise `sensitivity`.
+
+---
+
+## Requirements
+
+- Python 3.10+
+- Webcam
+- macOS / Linux / Windows
+
+---
+
+## License
+
+MIT — educational and personal use.
