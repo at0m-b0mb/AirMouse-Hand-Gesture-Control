@@ -2,6 +2,20 @@
 import cv2
 
 
+def list_cameras(max_index: int = 6) -> list[tuple[int, int, int]]:
+    """Probe indices 0..max_index-1. Returns [(index, width, height), ...]."""
+    found = []
+    for idx in range(max_index):
+        cap = cv2.VideoCapture(idx)
+        if cap.isOpened():
+            ret, frame = cap.read()
+            if ret and frame is not None:
+                h, w = frame.shape[:2]
+                found.append((idx, w, h))
+        cap.release()
+    return found
+
+
 def detect_camera(preferred: int = -1) -> int:
     """Return a working camera index, scanning 0-5 if preferred=-1."""
     if preferred >= 0:
@@ -34,6 +48,8 @@ def detect_camera(preferred: int = -1) -> int:
 def open_camera(index: int, width: int = 1280, height: int = 720):
     """Open camera at requested resolution. Returns (VideoCapture, actual_w, actual_h)."""
     cap = cv2.VideoCapture(index)
+    if not cap.isOpened():
+        raise RuntimeError(f"Could not open camera index {index}.")
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
     cap.set(cv2.CAP_PROP_FPS, 30)

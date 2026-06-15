@@ -2,6 +2,8 @@
 import time
 from typing import Optional
 
+from src.filters import OneEuroFilter
+
 try:
     from pynput.mouse import Button, Controller as _MC
     from pynput.keyboard import Key, Controller as _KC
@@ -19,72 +21,50 @@ try:
 except Exception:
     _PYAUTOGUI = False
 
-_PYNPUT_KEYS = {
-    "BKSP":  "backspace",
-    "ENTER": "enter",
-    "SPACE": "space",
-    "TAB":   "tab",
-}
 
-_PYAUTOGUI_KEYS = {
-    "BKSP":  "backspace",
-    "ENTER": "enter",
-    "SPACE": "space",
-    "TAB":   "tab",
-}
-
-
-def _move(x: int, y: int) -> None:
+def _do_move(x: int, y: int) -> None:
     if _PYNPUT:
         _mouse.position = (x, y)
     elif _PYAUTOGUI:
         pyautogui.moveTo(x, y)
 
 
-def _click_left() -> None:
+def _do_click(button: str, n: int = 1) -> None:
     if _PYNPUT:
-        _mouse.click(Button.left)
+        btn = Button.left if button == "left" else Button.right
+        _mouse.click(btn, n)
     elif _PYAUTOGUI:
-        pyautogui.click()
+        if button == "left":
+            pyautogui.click(clicks=n)
+        else:
+            pyautogui.rightClick()
 
 
-def _click_right() -> None:
-    if _PYNPUT:
-        _mouse.click(Button.right)
-    elif _PYAUTOGUI:
-        pyautogui.rightClick()
-
-
-def _press_btn() -> None:
+def _do_press() -> None:
     if _PYNPUT:
         _mouse.press(Button.left)
     elif _PYAUTOGUI:
         pyautogui.mouseDown()
 
 
-def _release_btn() -> None:
+def _do_release() -> None:
     if _PYNPUT:
         _mouse.release(Button.left)
     elif _PYAUTOGUI:
         pyautogui.mouseUp()
 
 
-def _scroll(dy: int) -> None:
+def _do_scroll(dx: int, dy: int) -> None:
     if _PYNPUT:
-        _mouse.scroll(0, dy)
+        _mouse.scroll(dx, dy)
     elif _PYAUTOGUI:
-        pyautogui.scroll(dy)
+        if dy:
+            pyautogui.scroll(dy)
+        if dx:
+            pyautogui.hscroll(dx)
 
 
-def _type(char: str) -> None:
-    if char in _PYNPUT_KEYS and _PYNPUT:
-        k = getattr(Key, _PYNPUT_KEYS[char], None)
-        if k:
-            _kbd.press(k); _kbd.release(k)
-        return
-    if char in _PYAUTOGUI_KEYS and _PYAUTOGUI:
-        pyautogui.press(_PYAUTOGUI_KEYS[char])
-        return
+def _do_type(char: str) -> None:
     if _PYNPUT:
         _kbd.type(char)
     elif _PYAUTOGUI:
@@ -92,82 +72,151 @@ def _type(char: str) -> None:
 
 
 class MouseController:
-    """Smooth cursor movement + click/scroll/drag + keyboard typing."""
+    """Smooth cursor + click/scroll/drag + typing. One Euro Filter by default."""
 
     def __init__(
         self,
         screen_w: int,
         screen_h: int,
-        smoothing: float = 0.18,
-        sensitivity: float = 1.3,
-        dead_zone: float = 0.008,
+        use_one_euro: bool = True,
+        oe_min_cutoff: float = 1.0,
+        oe_beta: float = 0.012,
+        smoothing: float = 0.25,
+        sensitivity: float = 1.4,
+        dead_zone: float = 0.006,
         cursor_margin: float = 0.12,
+        calib: Optional[tuple[float, float, float, float]] = None,
     ):
         self.sw = screen_w
         self.sh = screen_h
+        self.use_oe = use_one_euro
         self.alpha = smoothing
         self.sens = sensitivity
         self.dz = dead_zone
         self.margin = cursor_margin
+        self.calib = calib  # (x0, y0, x1, y1) normalized active box, or None
 
-        self._sx: float = screen_w / 2.0
-        self._sy: float = screen_h / 2.0
-        self._dragging: bool = False
-        self._scroll_y: Optional[float] = None
-        self._scroll_t: float = 0.0
+        self._fx = OneEuroFilter(oe_min_cutoff, oe_beta)
+        self._fy = OneEuroFilter(oe_min_cutoff, oe_beta)
 
-    def _map(self, norm: float, size: int) -> int:
-        """Map normalized [margin, 1-margin] → [0, size]."""
-        m = self.margin
-        clamped = max(m, min(1.0 - m, norm))
-        return max(0, min(size - 1, int((clamped - m) / (1.0 - 2 * m) * size)))
+        self._sx = screen_w / 2.0
+        self._sy = screen_h / 2.0
+        self.last_xy = (int(self._sx), int(self._sy))
+
+        self._dragging = False
+        self._scroll_anchor: Optional[tuple[float, float]] = None
+        self._scroll_t = 0.0
+
+    # ── mapping ────────────────────────────────────────────────────────────────
+
+    def _map_axis(self, norm: float, lo: float, hi: float, size: int) -> int:
+        clamped = max(lo, min(hi, norm))
+        return max(0, min(size - 1, int((clamped - lo) / (hi - lo) * size)))
+
+    def _map(self, nx: float, ny: float) -> tuple[int, int]:
+        if self.calib:
+            x0, y0, x1, y1 = self.calib
+        else:
+            x0 = y0 = self.margin
+            x1 = y1 = 1.0 - self.margin
+        return (self._map_axis(nx, x0, x1, self.sw),
+                self._map_axis(ny, y0, y1, self.sh))
+
+    # ── movement ────────────────────────────────────────────────────────────────
 
     def move(self, nx: float, ny: float) -> None:
-        tx = self._map(nx, self.sw)
-        ty = self._map(ny, self.sh)
-        dx = tx - self._sx
-        dy = ty - self._sy
-        if abs(dx) / self.sw < self.dz and abs(dy) / self.sh < self.dz:
-            return
-        self._sx += self.alpha * dx * self.sens
-        self._sy += self.alpha * dy * self.sens
+        tx, ty = self._map(nx, ny)
+        if self.use_oe:
+            now = time.time()
+            fx = self._fx(tx, now)
+            fy = self._fy(ty, now)
+            # apply sensitivity around current position
+            self._sx += (fx - self._sx) * self.sens
+            self._sy += (fy - self._sy) * self.sens
+        else:
+            dx, dy = tx - self._sx, ty - self._sy
+            if abs(dx) / self.sw < self.dz and abs(dy) / self.sh < self.dz:
+                return
+            self._sx += self.alpha * dx * self.sens
+            self._sy += self.alpha * dy * self.sens
+
         x = max(0, min(self.sw - 1, int(self._sx)))
         y = max(0, min(self.sh - 1, int(self._sy)))
-        _move(x, y)
+        self.last_xy = (x, y)
+        _do_move(x, y)
+
+    def warp_filter(self) -> None:
+        """Reset filters (call when the hand re-enters frame to avoid a jump)."""
+        self._fx.reset()
+        self._fy.reset()
+
+    # ── clicks ────────────────────────────────────────────────────────────────
 
     def left_click(self) -> None:
-        _click_left()
+        _do_click("left", 1)
+
+    def double_click(self) -> None:
+        _do_click("left", 2)
 
     def right_click(self) -> None:
-        _click_right()
+        _do_click("right", 1)
 
     def start_drag(self) -> None:
         if not self._dragging:
-            _press_btn()
+            _do_press()
             self._dragging = True
 
     def stop_drag(self) -> None:
         if self._dragging:
-            _release_btn()
+            _do_release()
             self._dragging = False
 
-    def scroll(self, ny: float, speed: int = 3) -> None:
+    @property
+    def dragging(self) -> bool:
+        return self._dragging
+
+    # ── scroll (2-axis) ─────────────────────────────────────────────────────────
+
+    def scroll(self, nx: float, ny: float, speed: int = 4, horizontal: bool = True) -> None:
         now = time.time()
-        if self._scroll_y is None:
-            self._scroll_y = ny
+        if self._scroll_anchor is None:
+            self._scroll_anchor = (nx, ny)
             return
-        if now - self._scroll_t < 0.08:
+        if now - self._scroll_t < 0.06:
             return
-        delta = self._scroll_y - ny  # positive = scroll up
-        if abs(delta) > 0.012:
-            ticks = int(delta * 45 * speed)
-            if ticks:
-                _scroll(ticks)
-                self._scroll_t = now
-        self._scroll_y = ny
+        ax, ay = self._scroll_anchor
+        ddy = ay - ny       # up = positive
+        ddx = nx - ax       # right = positive
+        moved = False
+        if abs(ddy) > 0.012:
+            ty = int(ddy * 45 * speed)
+            if ty:
+                _do_scroll(0, ty)
+                moved = True
+        if horizontal and abs(ddx) > 0.018:
+            tx = int(ddx * 35 * speed)
+            if tx:
+                _do_scroll(tx, 0)
+                moved = True
+        if moved:
+            self._scroll_t = now
+        self._scroll_anchor = (nx, ny)
 
     def reset_scroll(self) -> None:
-        self._scroll_y = None
+        self._scroll_anchor = None
+
+    # ── typing ──────────────────────────────────────────────────────────────────
 
     def type_char(self, char: str) -> None:
-        _type(char)
+        _do_type(char)
+
+    def tap_key(self, name: str) -> None:
+        """Tap a named special key via pynput (enter, backspace, arrows, ...)."""
+        if not _PYNPUT:
+            if _PYAUTOGUI:
+                pyautogui.press(name)
+            return
+        key = getattr(Key, name, None)
+        if key:
+            _kbd.press(key)
+            _kbd.release(key)
