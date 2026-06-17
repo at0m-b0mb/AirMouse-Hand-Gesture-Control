@@ -12,18 +12,21 @@ Control your laptop **entirely with your hand** — no keyboard, no mouse, no to
 |---|---|
 | **Buttery cursor** | One Euro Filter — smooth when still, instant when you move (no lag, no jitter) |
 | **Left / right click** | Pinch thumb+index (left) or thumb+middle (right), edge-triggered with hysteresis |
+| **Middle click** | Optional thumb+ring pinch (enable in the GUI, `--middle-click`, or config) |
 | **Double-click** | Pinch thumb+index twice quickly |
 | **Scroll (2-axis)** | Peace sign — move hand up/down and left/right |
 | **Drag** | Fist to grab, open hand to release |
 | **Virtual keyboard** | Hold open palm to toggle; pinch keys to type; live text preview, Caps & Shift |
 | **Function keys** | Volume, mute, play/pause, screenshot, arrows & Esc — built into the keyboard |
 | **Pause / resume** | Thumbs-up (hold) or press `P` — rest your hand without moving the cursor |
+| **Tuning profiles** | One-click **Balanced · Precision · Fast · Presentation** presets |
 | **Calibration** | Press `C` — map *your* comfortable hand range to the full screen |
 | **Auto camera** | Scans all ports on first run, saves the working index to config.json |
 | **Full-screen mapping** | Detects screen resolution; calibration or margin maps frame → whole display |
-| **Live tuning** | Adjust sensitivity & smoothing on the fly with hotkeys |
+| **Always-on-top** | Keep the AirMouse window above everything (`T`, `--always-on-top`, GUI) |
+| **Live tuning** | Adjust sensitivity, smoothing, FPS & more on the fly with hotkeys |
 | **Rich HUD** | Mode badge, FPS, gesture labels, click ripples, toasts, in-app help (`H`) |
-| **GUI launcher** | `launcher.py` — pick camera & tune with sliders before launching |
+| **GUI Control Center** | `launcher.py` — tabbed panel: camera scan, profiles, sliders, options, gesture guide |
 | **Client/Server** | Stream gestures from one machine to control another on the same network |
 
 ---
@@ -36,6 +39,7 @@ Hand pose                   Action
 Index finger pointing       Move cursor
 Pinch thumb + index         Left click   (pinch twice fast = double-click)
 Pinch thumb + middle        Right click
+Pinch thumb + ring          Middle click  (opt-in — enable in Options/--middle-click)
 Index + middle up (peace)   Scroll — move hand up/down, left/right
 Fist (all fingers curled)   Drag — fist to grab, open to drop
 Open palm, hold ~1 s        Toggle virtual keyboard
@@ -53,6 +57,7 @@ Thumbs-up, hold ~0.7 s      Pause / resume control
 | `H` | Toggle help overlay | `S` | Screenshot |
 | `P` | Pause / resume | `L` | Toggle hand skeleton |
 | `C` | Calibrate hand range | `F` | Toggle mirror flip |
+| `G` | Toggle FPS counter | `T` | Toggle always-on-top |
 | `+` / `-` | Sensitivity up / down | `[` / `]` | Smoothing softer / snappier |
 | `Q` / `ESC` | Quit (saves settings) | | |
 
@@ -78,12 +83,19 @@ Grant both in **System Settings → Privacy & Security**:
 
 ## Usage
 
-### GUI launcher (easiest)
+### GUI Control Center (easiest)
 
 ```bash
 python launcher.py
 ```
-Pick your camera, drag the sliders, and hit **Launch**.
+A tabbed control panel (requires `customtkinter`):
+- **Tuning** — pick a profile or fine-tune sensitivity, responsiveness, smoothness, edge margin, scroll speed & click sensitivity with live sliders
+- **Camera** — scan for and pick a specific webcam (or leave on auto-detect)
+- **Options** — toggle mirror, skeleton, help overlay, FPS, always-on-top, middle-click & horizontal scroll
+- **Gestures** — full gesture & hotkey cheat-sheet
+- **About** — version, repo link
+
+Hit **Launch** (or **Calibrate then launch**); **Save** writes settings to `config.json` without launching.
 
 ### Standalone
 
@@ -100,8 +112,24 @@ python AirMouse.py --camera 1          # force a specific camera index
 python AirMouse.py --calibrate         # run hand-range calibration on startup
 python AirMouse.py --no-flip           # disable the mirror flip
 python AirMouse.py --sensitivity 1.8   # override cursor sensitivity
+python AirMouse.py --profile Precision # apply a tuning profile (Balanced/Precision/Fast/Presentation)
+python AirMouse.py --always-on-top     # keep the window above other windows
+python AirMouse.py --middle-click      # enable the thumb+ring middle-click gesture
 python AirMouse.py --reset-config      # delete config.json and start fresh
 ```
+
+### Tuning profiles
+
+Switch the cursor "feel" in one move — from the GUI's **Tuning** tab or the CLI:
+
+| Profile | Best for |
+|---|---|
+| **Balanced** | Everyday use (default) |
+| **Precision** | Fine, deliberate pointing — slower & smoother |
+| **Fast** | Big screens / quick navigation — snappier & faster |
+| **Presentation** | Pointing while presenting — steady with relaxed clicks |
+
+A profile only changes the tuning sliders; your camera, calibration and toggles are left untouched. Moving any slider switches the profile to **Custom**.
 
 ### Client / Server mode (two machines on the same network)
 
@@ -144,6 +172,9 @@ By default AirMouse maps the central ~76% of the camera frame to your full scree
 | `horizontal_scroll` | true | Enable left/right scroll in the peace gesture |
 | `keyboard_toggle_hold` | 0.9 | Open-palm seconds to toggle the keyboard |
 | `pause_toggle_hold` | 0.7 | Thumbs-up seconds to pause/resume |
+| `profile` | Balanced | Active tuning profile (or `Custom`) |
+| `enable_middle_click` | false | Thumb+ring pinch → middle click |
+| `always_on_top` | false | Keep the AirMouse window above other windows |
 | `flip` | true | Mirror the camera image |
 | `screenshot_dir` | screenshots | Where `S` / the screenshot key saves PNGs |
 
@@ -197,3 +228,7 @@ src/
 ## License
 
 MIT — educational and personal use.
+
+---
+
+Created and maintained by [**at0m-b0mb**](https://github.com/at0m-b0mb).

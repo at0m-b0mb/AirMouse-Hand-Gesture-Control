@@ -6,13 +6,14 @@ Gestures:
   Index finger only          → Move cursor
   Pinch thumb + index        → Left click  (pinch twice fast = double-click)
   Pinch thumb + middle       → Right click
+  Pinch thumb + ring         → Middle click  (opt-in: --middle-click)
   Peace sign (index + mid)   → Scroll (move hand up/down, left/right)
   Fist                       → Drag (hold and move)
   Open palm, hold            → Toggle virtual keyboard
   Thumbs-up, hold            → Pause / resume control
 
 Hotkeys: H help · P pause · C calibrate · S screenshot · L landmarks
-         F flip · +/- sensitivity · [ ] smoothing · Q/ESC quit
+         F flip · G fps · T on-top · +/- sensitivity · [ ] smoothing · Q/ESC quit
 
 Run:  python AirMouse.py            (standalone)
       python AirMouse.py --help     (all options)
@@ -54,6 +55,12 @@ def _parse_args():
                    help="Run hand-range calibration on startup")
     p.add_argument("--no-flip", action="store_true", help="Disable mirror flip")
     p.add_argument("--flip", action="store_true", help="Force mirror flip on")
+    p.add_argument("--profile", type=str, default=None, metavar="NAME",
+                   help="Apply a tuning profile (Balanced, Precision, Fast, Presentation)")
+    p.add_argument("--always-on-top", action="store_true",
+                   help="Keep the AirMouse window above other windows")
+    p.add_argument("--middle-click", action="store_true",
+                   help="Enable the thumb+ring pinch middle-click gesture")
     p.add_argument("--no-landmarks", action="store_true",
                    help="Hide the hand skeleton overlay")
     p.add_argument("--help-overlay", action="store_true",
@@ -125,12 +132,22 @@ def main():
     cfg = Config.load()
 
     # CLI overrides
+    if args.profile:
+        from config import PROFILES
+        if not cfg.apply_profile(args.profile):
+            print(f"[AirMouse] Unknown profile '{args.profile}'. "
+                  f"Choices: {', '.join(PROFILES)}")
+            sys.exit(1)
     if args.camera is not None:
         cfg.camera_index = args.camera
     if args.no_flip:
         cfg.flip = False
     if args.flip:
         cfg.flip = True
+    if args.always_on_top:
+        cfg.always_on_top = True
+    if args.middle_click:
+        cfg.enable_middle_click = True
     if args.no_landmarks:
         cfg.show_landmarks = False
     if args.help_overlay:
@@ -177,7 +194,8 @@ def _run(cfg, args, cv2, log):
     tracker = HandTracker(cfg.max_hands, cfg.detection_confidence, cfg.tracking_confidence)
     engine = GestureEngine(cfg.keyboard_toggle_hold, cfg.pause_toggle_hold,
                            cfg.click_threshold, cfg.click_release,
-                           cfg.double_click_window, cfg.click_cooldown)
+                           cfg.double_click_window, cfg.click_cooldown,
+                           cfg.enable_middle_click)
     calib = (cfg.calib_x0, cfg.calib_y0, cfg.calib_x1, cfg.calib_y1) if cfg.is_calibrated else None
     mouse = MouseController(sw, sh, cfg.use_one_euro, cfg.oe_min_cutoff, cfg.oe_beta,
                             cfg.smoothing, cfg.sensitivity, cfg.dead_zone,
@@ -195,6 +213,11 @@ def _run(cfg, args, cv2, log):
     win = "AirMouse"
     cv2.namedWindow(win, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(win, cam_w, cam_h)
+    if cfg.always_on_top:
+        try:
+            cv2.setWindowProperty(win, cv2.WND_PROP_TOPMOST, 1)
+        except Exception:
+            log.warning("Always-on-top not supported by this OpenCV build.")
 
     fps = fps_count = 0
     fps_t = time.time()
@@ -239,7 +262,8 @@ def _run(cfg, args, cv2, log):
         if time.time() - fps_t >= 1.0:
             fps, fps_count, fps_t = fps_count, 0, time.time()
 
-        hud.draw_status_bar(frame, fps, engine, mouse.sens, cfg.is_calibrated)
+        hud.draw_status_bar(frame, fps, engine, mouse.sens, cfg.is_calibrated,
+                            cfg.show_fps)
         if lm_lists and not engine.in_keyboard_mode and not calibrator.active:
             hud.draw_gesture_label(frame, engine.label, nx, ny)
         hud.draw_hints(frame, engine)
@@ -286,6 +310,17 @@ def _run(cfg, args, cv2, log):
         elif key in (ord("l"), ord("L")):
             cfg.show_landmarks = not cfg.show_landmarks
             toast.show(f"Landmarks {'on' if cfg.show_landmarks else 'off'}")
+        elif key in (ord("g"), ord("G")):
+            cfg.show_fps = not cfg.show_fps
+            toast.show(f"FPS {'on' if cfg.show_fps else 'off'}")
+        elif key in (ord("t"), ord("T")):
+            cfg.always_on_top = not cfg.always_on_top
+            try:
+                cv2.setWindowProperty(win, cv2.WND_PROP_TOPMOST,
+                                      1 if cfg.always_on_top else 0)
+                toast.show(f"Always-on-top {'on' if cfg.always_on_top else 'off'}")
+            except Exception:
+                toast.show("Always-on-top not supported")
         elif key in (ord("f"), ord("F")):
             cfg.flip = not cfg.flip
             toast.show(f"Flip {'on' if cfg.flip else 'off'}")
@@ -363,6 +398,9 @@ def _handle_frame(engine, mouse, kbd, actions, hud, toast, ripples,
     elif g == Gesture.RIGHT_CLICK:
         mouse.stop_drag(); mouse.right_click()
         ripples.add(int(nx * cam_w), int(ny * cam_h), (220, 120, 60))
+    elif g == Gesture.MIDDLE_CLICK:
+        mouse.stop_drag(); mouse.middle_click()
+        ripples.add(int(nx * cam_w), int(ny * cam_h), (200, 200, 60))
     elif g == Gesture.SCROLL:
         mouse.stop_drag()
         ax, ay = engine.scroll_anchor(lm)
@@ -378,12 +416,13 @@ def _print_gestures():
     print("  Index finger only          → Move cursor")
     print("  Pinch  (thumb + index)     → Left click  (twice = double-click)")
     print("  Pinch  (thumb + middle)    → Right click")
+    print("  Pinch  (thumb + ring)      → Middle click  (if enabled)")
     print("  Peace sign (index + mid)   → Scroll up/down/left/right")
     print("  Fist                       → Drag")
     print("  Open palm, hold            → Toggle virtual keyboard")
     print("  Thumbs-up, hold            → Pause / resume")
     print("\n[Hotkeys] H help · P pause · C calibrate · S shot · L landmarks · "
-          "F flip · +/- sens · [ ] smooth · Q quit\n")
+          "F flip · G fps · T on-top · +/- sens · [ ] smooth · Q quit\n")
 
 
 if __name__ == "__main__":

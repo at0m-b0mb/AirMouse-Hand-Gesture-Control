@@ -18,6 +18,7 @@ class Gesture(Enum):
     LEFT_CLICK = auto()
     DOUBLE_CLICK = auto()
     RIGHT_CLICK = auto()
+    MIDDLE_CLICK = auto()
     SCROLL = auto()
     DRAG = auto()
 
@@ -39,6 +40,7 @@ class GestureEngine:
         click_release: float = 0.085,
         double_click_window: float = 0.40,
         click_cooldown: float = 0.30,
+        enable_middle_click: bool = False,
     ):
         self._kb_hold = keyboard_toggle_hold
         self._pause_hold = pause_toggle_hold
@@ -46,6 +48,7 @@ class GestureEngine:
         self._click_release = click_release
         self._dbl_window = double_click_window
         self._click_cd = click_cooldown
+        self._enable_middle = enable_middle_click
 
         self._in_kb = False
         self._paused = False
@@ -56,6 +59,7 @@ class GestureEngine:
         # edge-triggered pinch state
         self._l_engaged = False
         self._r_engaged = False
+        self._m_engaged = False
         self._last_click_t = 0.0
         self._last_click_was_single = False
 
@@ -151,6 +155,19 @@ class GestureEngine:
 
         pinch_idx = _dist(lm[_THUMB_TIP], lm[_IDX_TIP]) / hs
         pinch_mid = _dist(lm[_THUMB_TIP], lm[_MID_TIP]) / hs
+        pinch_rng = _dist(lm[_THUMB_TIP], lm[_RNG_TIP]) / hs
+
+        # ── Middle click (opt-in): thumb-ring pinch, ring the closest finger ──
+        if self._enable_middle:
+            if (pinch_rng < self._click_engage
+                    and pinch_rng <= pinch_mid and pinch_rng <= pinch_idx):
+                if not self._m_engaged and now - self._last_click_t > self._click_cd:
+                    self._m_engaged = True
+                    self._last_click_t = now
+                    self._label = "Middle click"
+                    return Gesture.MIDDLE_CLICK
+            elif pinch_rng > self._click_release:
+                self._m_engaged = False
 
         # ── Right click: edge-triggered thumb-middle pinch ───────────────────
         if pinch_mid < self._click_engage:

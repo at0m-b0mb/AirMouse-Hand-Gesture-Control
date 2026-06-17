@@ -8,6 +8,7 @@ _HELP_LINES = [
     ("Index finger", "Move cursor"),
     ("Pinch thumb+index", "Left click  (pinch twice = double-click)"),
     ("Pinch thumb+middle", "Right click"),
+    ("Pinch thumb+ring", "Middle click  (opt-in)"),
     ("Peace sign", "Scroll  (move up/down, left/right)"),
     ("Fist", "Drag  (hold and move)"),
     ("Open palm (hold)", "Toggle virtual keyboard"),
@@ -20,6 +21,8 @@ _HELP_LINES = [
     ("S", "Screenshot"),
     ("L", "Toggle landmarks"),
     ("F", "Toggle mirror flip"),
+    ("G", "Toggle FPS counter"),
+    ("T", "Toggle always-on-top"),
     ("+ / -", "Sensitivity up / down"),
     ("[ / ]", "Smoothing softer / snappier"),
     ("Q / ESC", "Quit"),
@@ -73,7 +76,7 @@ class Ripples:
         self._items = alive
 
 
-def draw_status_bar(frame, fps, engine, sensitivity, calibrated):
+def draw_status_bar(frame, fps, engine, sensitivity, calibrated, show_fps=True):
     h, w = frame.shape[:2]
     cv2.rectangle(frame, (0, 0), (w, 34), (12, 12, 12), -1)
 
@@ -87,7 +90,8 @@ def draw_status_bar(frame, fps, engine, sensitivity, calibrated):
 
     tag = f"sens {sensitivity:.1f}   {'CAL' if calibrated else 'margin'}"
     cv2.putText(frame, tag, (150, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (150, 150, 150), 1, cv2.LINE_AA)
-    cv2.putText(frame, f"FPS {fps}", (w - 150, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 150, 150), 1, cv2.LINE_AA)
+    if show_fps:
+        cv2.putText(frame, f"FPS {fps}", (w - 150, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 150, 150), 1, cv2.LINE_AA)
     cv2.putText(frame, "H help", (w - 70, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (110, 110, 110), 1, cv2.LINE_AA)
 
     # hold-progress bars

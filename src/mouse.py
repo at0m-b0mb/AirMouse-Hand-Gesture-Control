@@ -31,11 +31,14 @@ def _do_move(x: int, y: int) -> None:
 
 def _do_click(button: str, n: int = 1) -> None:
     if _PYNPUT:
-        btn = Button.left if button == "left" else Button.right
+        btn = {"left": Button.left, "right": Button.right,
+               "middle": Button.middle}.get(button, Button.left)
         _mouse.click(btn, n)
     elif _PYAUTOGUI:
         if button == "left":
             pyautogui.click(clicks=n)
+        elif button == "middle":
+            pyautogui.middleClick()
         else:
             pyautogui.rightClick()
 
@@ -160,6 +163,9 @@ class MouseController:
 
     def right_click(self) -> None:
         _do_click("right", 1)
+
+    def middle_click(self) -> None:
+        _do_click("middle", 1)
 
     def start_drag(self) -> None:
         if not self._dragging:
