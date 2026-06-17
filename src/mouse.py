@@ -89,6 +89,8 @@ class MouseController:
         dead_zone: float = 0.006,
         cursor_margin: float = 0.12,
         calib: Optional[tuple[float, float, float, float]] = None,
+        inertia: bool = False,
+        friction: float = 0.85,
     ):
         self.sw = screen_w
         self.sh = screen_h
@@ -98,6 +100,8 @@ class MouseController:
         self.dz = dead_zone
         self.margin = cursor_margin
         self.calib = calib  # (x0, y0, x1, y1) normalized active box, or None
+        self.inertia = inertia
+        self.friction = friction
 
         self._fx = OneEuroFilter(oe_min_cutoff, oe_beta)
         self._fy = OneEuroFilter(oe_min_cutoff, oe_beta)
@@ -109,6 +113,7 @@ class MouseController:
         self._dragging = False
         self._scroll_anchor: Optional[tuple[float, float]] = None
         self._scroll_t = 0.0
+        self._scroll_v = (0.0, 0.0)   # last scroll velocity (for inertia glide)
 
     # ── mapping ────────────────────────────────────────────────────────────────
 
@@ -183,30 +188,47 @@ class MouseController:
 
     # ── scroll (2-axis) ─────────────────────────────────────────────────────────
 
-    def scroll(self, nx: float, ny: float, speed: int = 4, horizontal: bool = True) -> None:
+    def scroll(self, nx: float, ny: float, speed: int = 4, horizontal: bool = True) -> bool:
         now = time.time()
         if self._scroll_anchor is None:
             self._scroll_anchor = (nx, ny)
-            return
+            return False
         if now - self._scroll_t < 0.06:
-            return
+            return False
         ax, ay = self._scroll_anchor
         ddy = ay - ny       # up = positive
         ddx = nx - ax       # right = positive
         moved = False
+        vx = vy = 0.0
         if abs(ddy) > 0.012:
-            ty = int(ddy * 45 * speed)
-            if ty:
-                _do_scroll(0, ty)
+            vy = float(int(ddy * 45 * speed))
+            if vy:
+                _do_scroll(0, int(vy))
                 moved = True
         if horizontal and abs(ddx) > 0.018:
-            tx = int(ddx * 35 * speed)
-            if tx:
-                _do_scroll(tx, 0)
+            vx = float(int(ddx * 35 * speed))
+            if vx:
+                _do_scroll(int(vx), 0)
                 moved = True
         if moved:
             self._scroll_t = now
+            self._scroll_v = (vx, vy)
         self._scroll_anchor = (nx, ny)
+        return moved
+
+    def apply_inertia(self) -> bool:
+        """Emit a decaying scroll after the gesture ends. Returns True if it scrolled."""
+        if not self.inertia:
+            return False
+        vx, vy = self._scroll_v
+        if abs(vx) < 1.0 and abs(vy) < 1.0:
+            self._scroll_v = (0.0, 0.0)
+            return False
+        ix, iy = int(vx), int(vy)
+        if ix or iy:
+            _do_scroll(ix, iy)
+        self._scroll_v = (vx * self.friction, vy * self.friction)
+        return bool(ix or iy)
 
     def reset_scroll(self) -> None:
         self._scroll_anchor = None

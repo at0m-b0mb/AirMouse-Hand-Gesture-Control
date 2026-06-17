@@ -1,0 +1,72 @@
+<svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AirMouse banner">
+  <defs>
+    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6C5CE7"/>
+      <stop offset="52%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#2DD4BF"/>
+    </linearGradient>
+    <radialGradient id="b1" cx="20%" cy="20%" r="60%">
+      <stop offset="0%" stop-color="#6C5CE7" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#6C5CE7" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="b2" cx="85%" cy="75%" r="55%">
+      <stop offset="0%" stop-color="#2DD4BF" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#2DD4BF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="b3" cx="60%" cy="10%" r="50%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.40"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="320" rx="0" fill="#0E0B16"/>
+  <rect width="1280" height="320" fill="url(#b1)"/>
+  <rect width="1280" height="320" fill="url(#b2)"/>
+  <rect width="1280" height="320" fill="url(#b3)"/>
+
+  <!-- logo mark -->
+  <g transform="translate(80 92)">
+    <rect width="136" height="136" rx="34" fill="url(#aurora)"/>
+    <g stroke="#ffffff" stroke-opacity="0.6" stroke-width="2.4" fill="none" stroke-linecap="round">
+      <path d="M54 104 L48 70 M54 104 L70 62 M54 104 L86 66 M54 104 L100 82"/>
+    </g>
+    <g fill="#ffffff">
+      <circle cx="54" cy="104" r="6"/><circle cx="48" cy="70" r="4.5"/>
+      <circle cx="70" cy="62" r="4.5"/><circle cx="86" cy="66" r="4.5"/>
+      <circle cx="100" cy="82" r="4.5"/>
+    </g>
+    <circle cx="60" cy="66" r="9" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-opacity="0.9"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="252" y="150" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="76"
+        font-weight="800" fill="#ECEAF5" letter-spacing="-1">AirMouse</text>
+  <text x="256" y="196" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26"
+        fill="#A99FD6">Gesture Laptop Controller — cursor, clicks, scroll, drag &amp; type in the air</text>
+
+  <!-- feature chips -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" fill="#ECEAF5">
+    <g transform="translate(256 224)">
+      <rect width="150" height="34" rx="17" fill="#ffffff" fill-opacity="0.08" stroke="#6C5CE7" stroke-opacity="0.7"/>
+      <text x="18" y="23">One Euro Filter</text>
+    </g>
+    <g transform="translate(418 224)">
+      <rect width="168" height="34" rx="17" fill="#ffffff" fill-opacity="0.08" stroke="#A855F7" stroke-opacity="0.7"/>
+      <text x="18" y="23">Virtual keyboard</text>
+    </g>
+    <g transform="translate(598 224)">
+      <rect width="148" height="34" rx="17" fill="#ffffff" fill-opacity="0.08" stroke="#2DD4BF" stroke-opacity="0.7"/>
+      <text x="18" y="23">Live preview</text>
+    </g>
+  </g>
+
+  <!-- right-side landmark constellation -->
+  <g transform="translate(980 60)" stroke="#2DD4BF" stroke-opacity="0.55" stroke-width="2.2" fill="none" stroke-linecap="round">
+    <path d="M70 190 L40 120 M70 190 L96 96 M70 190 L150 110 M70 190 L196 150 M96 96 L150 110"/>
+  </g>
+  <g transform="translate(980 60)" fill="#ECEAF5">
+    <circle cx="70" cy="190" r="8"/><circle cx="40" cy="120" r="6"/>
+    <circle cx="96" cy="96" r="6"/><circle cx="150" cy="110" r="6"/>
+    <circle cx="196" cy="150" r="6"/>
+  </g>
+</svg>

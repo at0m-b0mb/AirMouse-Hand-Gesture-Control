@@ -1,7 +1,12 @@
-"""Heads-up display: status bar, help overlay, click ripples, toasts."""
+"""Heads-up display: themed status bar, help overlay, click ripples, toasts.
+
+All colours come from src.branding so the HUD always matches the active theme.
+"""
 import time
 import cv2
 import numpy as np
+
+from src import branding as b
 
 _HELP_LINES = [
     ("GESTURES", ""),
@@ -16,13 +21,13 @@ _HELP_LINES = [
     ("", ""),
     ("HOTKEYS", ""),
     ("H", "Toggle this help"),
-    ("P", "Pause / resume"),
+    ("P / Space", "Pause / freeze cursor"),
     ("C", "Calibrate hand range"),
     ("S", "Screenshot"),
     ("L", "Toggle landmarks"),
     ("F", "Toggle mirror flip"),
-    ("G", "Toggle FPS counter"),
-    ("T", "Toggle always-on-top"),
+    ("G / I", "Toggle FPS / stats"),
+    ("T / Y", "Always-on-top / cycle theme"),
     ("+ / -", "Sensitivity up / down"),
     ("[ / ]", "Smoothing softer / snappier"),
     ("Q / ESC", "Quit"),
@@ -48,10 +53,11 @@ class Toast:
         y = int(h * 0.16)
         pad = 12
         ov = frame.copy()
-        cv2.rectangle(ov, (x - pad, y - th - pad), (x + tw + pad, y + pad), (20, 20, 20), -1)
-        cv2.addWeighted(ov, 0.7, frame, 0.3, 0, frame)
+        cv2.rectangle(ov, (x - pad, y - th - pad), (x + tw + pad, y + pad),
+                      b.bgr("surface2"), -1)
+        cv2.addWeighted(ov, 0.78, frame, 0.22, 0, frame)
         cv2.putText(frame, self._msg, (x, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (80, 220, 255), 2, cv2.LINE_AA)
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, b.bgr("accent"), 2, cv2.LINE_AA)
 
 
 class Ripples:
@@ -59,8 +65,9 @@ class Ripples:
     def __init__(self) -> None:
         self._items: list[dict] = []
 
-    def add(self, x: int, y: int, color=(80, 220, 120)) -> None:
-        self._items.append({"x": x, "y": y, "t": time.time(), "color": color})
+    def add(self, x: int, y: int, color=None) -> None:
+        self._items.append({"x": x, "y": y, "t": time.time(),
+                            "color": color or b.bgr("accent")})
 
     def draw(self, frame: np.ndarray) -> None:
         now = time.time()
@@ -76,27 +83,36 @@ class Ripples:
         self._items = alive
 
 
-def draw_status_bar(frame, fps, engine, sensitivity, calibrated, show_fps=True):
+def draw_status_bar(frame, fps, engine, sensitivity, calibrated,
+                    show_fps=True, frozen=False):
     h, w = frame.shape[:2]
-    cv2.rectangle(frame, (0, 0), (w, 34), (12, 12, 12), -1)
+    cv2.rectangle(frame, (0, 0), (w, 34), b.bgr("surface"), -1)
+    cv2.line(frame, (0, 34), (w, 34), b.bgr("primary"), 1, cv2.LINE_AA)
 
-    if engine.paused:
-        mode, color = "PAUSED", (60, 200, 255)
+    if frozen:
+        mode, color = "FROZEN", b.bgr("warning")
+    elif engine.paused:
+        mode, color = "PAUSED", b.bgr("warning")
     elif engine.in_keyboard_mode:
-        mode, color = "KEYBOARD", (70, 220, 70)
+        mode, color = "KEYBOARD", b.bgr("accent")
     else:
-        mode, color = "MOUSE", (70, 150, 255)
-    cv2.putText(frame, mode, (10, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.62, color, 2, cv2.LINE_AA)
+        mode, color = "MOUSE", b.bgr("primary")
+    # accent dot + mode
+    cv2.circle(frame, (16, 17), 5, color, -1, cv2.LINE_AA)
+    cv2.putText(frame, mode, (30, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2, cv2.LINE_AA)
 
     tag = f"sens {sensitivity:.1f}   {'CAL' if calibrated else 'margin'}"
-    cv2.putText(frame, tag, (150, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (150, 150, 150), 1, cv2.LINE_AA)
+    cv2.putText(frame, tag, (170, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+                b.bgr("muted"), 1, cv2.LINE_AA)
     if show_fps:
-        cv2.putText(frame, f"FPS {fps}", (w - 150, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 150, 150), 1, cv2.LINE_AA)
-    cv2.putText(frame, "H help", (w - 70, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (110, 110, 110), 1, cv2.LINE_AA)
+        cv2.putText(frame, f"FPS {fps}", (w - 150, 23), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, b.bgr("muted"), 1, cv2.LINE_AA)
+    cv2.putText(frame, "H help", (w - 70, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+                b.bgr("muted"), 1, cv2.LINE_AA)
 
     # hold-progress bars
-    for prog, col in ((engine.palm_progress, (60, 220, 170)),
-                      (engine.pause_progress, (60, 200, 255))):
+    for prog, col in ((engine.palm_progress, b.bgr("accent")),
+                      (engine.pause_progress, b.bgr("warning"))):
         if 0 < prog < 1.0:
             cv2.rectangle(frame, (0, 34), (int(w * prog), 39), col, -1)
             break
@@ -110,8 +126,8 @@ def draw_gesture_label(frame, label, nx, ny):
     cv2.putText(frame, label, (x + 14, y - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 3, cv2.LINE_AA)
     cv2.putText(frame, label, (x + 14, y - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
-    cv2.circle(frame, (x, y), 7, (0, 230, 255), 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, b.bgr("text"), 1, cv2.LINE_AA)
+    cv2.circle(frame, (x, y), 7, b.bgr("accent"), 2, cv2.LINE_AA)
 
 
 def draw_hints(frame, engine):
@@ -120,46 +136,66 @@ def draw_hints(frame, engine):
         txt = "Pinch = press key   |   open palm (hold) = exit   |   H = help"
     else:
         txt = "Index=move  Pinch=click  R-pinch=right  Peace=scroll  Fist=drag  Palm=keys  Thumb=pause"
-    cv2.putText(frame, txt, (6, h - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.36, (120, 120, 120), 1, cv2.LINE_AA)
+    cv2.putText(frame, txt, (6, h - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.36,
+                b.bgr("muted"), 1, cv2.LINE_AA)
+
+
+def draw_stats(frame, line: str):
+    """Compact session-stats strip just under the status bar."""
+    if not line:
+        return
+    h, w = frame.shape[:2]
+    (tw, _), _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)
+    x = w - tw - 12
+    cv2.putText(frame, line, (x, 56), cv2.FONT_HERSHEY_SIMPLEX, 0.42,
+                b.bgr("secondary"), 1, cv2.LINE_AA)
+
+
+def draw_watermark(frame):
+    h, w = frame.shape[:2]
+    txt = f"{b.APP_NAME} {b.VERSION}"
+    (tw, _), _ = cv2.getTextSize(txt, cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)
+    cv2.putText(frame, txt, (w - tw - 10, h - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+                b.bgr("muted"), 1, cv2.LINE_AA)
 
 
 def draw_help(frame):
     h, w = frame.shape[:2]
     ov = frame.copy()
-    cv2.rectangle(ov, (0, 0), (w, h), (8, 8, 12), -1)
-    cv2.addWeighted(ov, 0.82, frame, 0.18, 0, frame)
+    cv2.rectangle(ov, (0, 0), (w, h), b.bgr("bg"), -1)
+    cv2.addWeighted(ov, 0.86, frame, 0.14, 0, frame)
 
     x0 = int(w * 0.10)
-    y = int(h * 0.12)
-    cv2.putText(frame, "AirMouse — Quick Reference", (x0, y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (80, 220, 255), 2, cv2.LINE_AA)
-    y += 34
+    y = int(h * 0.11)
+    cv2.putText(frame, f"{b.APP_NAME} — Quick Reference", (x0, y),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, b.bgr("accent"), 2, cv2.LINE_AA)
+    y += 32
     for left, right in _HELP_LINES:
         if left in ("GESTURES", "HOTKEYS"):
             cv2.putText(frame, left, (x0, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55,
-                        (90, 200, 120), 2, cv2.LINE_AA)
+                        b.bgr("secondary"), 2, cv2.LINE_AA)
         else:
             if left:
                 cv2.putText(frame, left, (x0, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            (230, 230, 230), 1, cv2.LINE_AA)
+                            b.bgr("text"), 1, cv2.LINE_AA)
             if right:
-                cv2.putText(frame, right, (x0 + int(w * 0.28), y), cv2.FONT_HERSHEY_SIMPLEX,
-                            0.5, (170, 170, 170), 1, cv2.LINE_AA)
-        y += 26
-    cv2.putText(frame, "Press H to close", (x0, int(h * 0.95)),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (120, 120, 120), 1, cv2.LINE_AA)
+                cv2.putText(frame, right, (x0 + int(w * 0.28), y),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, b.bgr("muted"), 1, cv2.LINE_AA)
+        y += 24
+    cv2.putText(frame, "Press H to close", (x0, int(h * 0.96)),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, b.bgr("muted"), 1, cv2.LINE_AA)
 
 
 def draw_calibration(frame, stage_text, box=None):
     h, w = frame.shape[:2]
     ov = frame.copy()
-    cv2.rectangle(ov, (0, 0), (w, h), (8, 8, 20), -1)
+    cv2.rectangle(ov, (0, 0), (w, h), b.bgr("bg"), -1)
     cv2.addWeighted(ov, 0.5, frame, 0.5, 0, frame)
     cv2.putText(frame, "CALIBRATION", (int(w * 0.5) - 110, int(h * 0.4)),
-                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (60, 200, 255), 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 1.0, b.bgr("primary"), 2, cv2.LINE_AA)
     cv2.putText(frame, stage_text, (int(w * 0.5) - 220, int(h * 0.5)),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (230, 230, 230), 1, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, b.bgr("text"), 1, cv2.LINE_AA)
     if box:
         x0, y0, x1, y1 = box
         cv2.rectangle(frame, (int(x0 * w), int(y0 * h)),
-                      (int(x1 * w), int(y1 * h)), (60, 200, 255), 2)
+                      (int(x1 * w), int(y1 * h)), b.bgr("accent"), 2)

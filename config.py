@@ -17,6 +17,10 @@ PROFILES: dict[str, dict] = {
                  cursor_margin=0.08, scroll_speed=6, click_threshold=0.060),
     "Presentation": dict(sensitivity=1.2, oe_beta=0.010, oe_min_cutoff=0.9,
                          cursor_margin=0.10, scroll_speed=5, click_threshold=0.070),
+    "Gaming": dict(sensitivity=2.4, oe_beta=0.030, oe_min_cutoff=1.5,
+                   cursor_margin=0.06, scroll_speed=7, click_threshold=0.058),
+    "Accessibility": dict(sensitivity=0.8, oe_beta=0.004, oe_min_cutoff=0.5,
+                          cursor_margin=0.16, scroll_speed=3, click_threshold=0.075),
 }
 
 
@@ -56,6 +60,8 @@ class Config:
     # ── Scrolling ─────────────────────────────────────────────────────────────
     scroll_speed: int = 4
     horizontal_scroll: bool = True
+    scroll_inertia: bool = False       # Keep scrolling (decaying) after the gesture ends
+    scroll_friction: float = 0.85      # Per-frame inertia decay (0..1, higher = longer glide)
 
     # ── Hold-to-toggle gestures ───────────────────────────────────────────────
     keyboard_toggle_hold: float = 0.9  # Open palm hold → toggle keyboard
@@ -69,8 +75,13 @@ class Config:
     show_fps: bool = True
     show_landmarks: bool = True
     show_help: bool = False
+    show_stats: bool = False        # Show the live session-stats line in the HUD
     window_scale: float = 1.0
     always_on_top: bool = False     # Keep the AirMouse window above other windows
+    theme: str = "Aurora"           # Visual theme (Aurora / Cyber / Mono)
+
+    # ── Comfort ───────────────────────────────────────────────────────────────
+    idle_pause_secs: float = 0.0    # Auto-pause after no hand for N seconds (0 = off)
 
     # ── Misc ──────────────────────────────────────────────────────────────────
     screenshot_dir: str = "screenshots"
