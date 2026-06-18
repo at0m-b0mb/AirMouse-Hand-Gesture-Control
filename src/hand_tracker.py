@@ -1,4 +1,6 @@
 """MediaPipe hand-tracking wrapper (Tasks API, mediapipe >= 0.10.18)."""
+import shutil
+import ssl
 import time
 import urllib.request
 from pathlib import Path
@@ -15,20 +17,43 @@ _MODEL_PATH = Path(__file__).parent.parent / "hand_landmarker.task"
 _CONNECTIONS = mp_vision.HandLandmarksConnections.HAND_CONNECTIONS
 
 
+def _ssl_context() -> ssl.SSLContext:
+    """Build an SSL context with a real CA bundle.
+
+    Many macOS Python builds ship without access to the system trust store
+    (``ssl.get_default_verify_paths().cafile`` is None), which makes urllib fail
+    with CERTIFICATE_VERIFY_FAILED. Using certifi's bundle fixes that.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        return ssl.create_default_context()
+
+
 def _ensure_model() -> str:
-    if not _MODEL_PATH.exists():
-        print("[HandTracker] Downloading hand landmarker model (~8 MB) ...")
-        try:
-            urllib.request.urlretrieve(_MODEL_URL, _MODEL_PATH)
-            print(f"[HandTracker] Model saved to {_MODEL_PATH}")
-        except Exception as exc:
-            _MODEL_PATH.unlink(missing_ok=True)
-            raise RuntimeError(
-                f"Model download failed: {exc}\n"
-                "Check your internet connection, then retry.\n"
-                f"Or download manually from {_MODEL_URL}\n"
-                f"and save to {_MODEL_PATH}"
-            ) from exc
+    if _MODEL_PATH.exists():
+        return str(_MODEL_PATH)
+    print("[HandTracker] Downloading hand landmarker model (~8 MB) ...")
+    tmp = _MODEL_PATH.with_name(_MODEL_PATH.name + ".part")
+    try:
+        req = urllib.request.Request(_MODEL_URL, headers={"User-Agent": "AirMouse"})
+        with urllib.request.urlopen(req, context=_ssl_context(), timeout=60) as resp, \
+                open(tmp, "wb") as out:
+            shutil.copyfileobj(resp, out)
+        tmp.replace(_MODEL_PATH)          # atomic — never leave a partial model
+        print(f"[HandTracker] Model saved to {_MODEL_PATH}")
+    except Exception as exc:
+        tmp.unlink(missing_ok=True)
+        _MODEL_PATH.unlink(missing_ok=True)
+        raise RuntimeError(
+            f"Model download failed: {exc}\n\n"
+            "This is usually a macOS Python SSL/certificate issue. Try one of:\n"
+            "  • pip install --upgrade certifi          (then relaunch)\n"
+            "  • run the 'Install Certificates.command' that ships with python.org Python\n"
+            "  • download the model manually:\n"
+            f"      curl -fL -o '{_MODEL_PATH}' \\\n          '{_MODEL_URL}'"
+        ) from exc
     return str(_MODEL_PATH)
 
 

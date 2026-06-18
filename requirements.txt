@@ -3,6 +3,7 @@ mediapipe>=0.10.18
 pynput>=1.7.6
 pyautogui>=0.9.54
 numpy>=1.24.0
+certifi>=2023.7.22     # CA bundle for the model download (fixes macOS SSL verify errors)
 
 # Optional — only needed for AirMouse Studio, the GUI control center (launcher.py)
 customtkinter>=5.2.0

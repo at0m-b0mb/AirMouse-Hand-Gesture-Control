@@ -250,6 +250,12 @@ src/
 
 **Camera not found** → `python AirMouse.py --list-cameras`, then `--camera N` with a listed index.
 
+**Model download fails / `CERTIFICATE_VERIFY_FAILED`** → a macOS Python SSL quirk (no CA bundle). AirMouse now downloads via `certifi`, so `pip install -r requirements.txt` usually fixes it. Otherwise download the model manually:
+```bash
+curl -fL -o hand_landmarker.task \
+  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
+```
+
 **Jittery cursor** → Press `[` a few times (softer smoothing), or lower `oe_beta` in config. Ensure good lighting.
 
 **Cursor doesn't reach screen edges** → Calibrate with `C`, or lower `cursor_margin`, or raise sensitivity with `+`.
