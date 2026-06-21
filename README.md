@@ -2,79 +2,119 @@
   <img src="assets/banner.svg" alt="AirMouse — Gesture Laptop Controller" width="100%">
 </p>
 
+<h1 align="center">◈ &nbsp;AirMouse &nbsp;3.1</h1>
+<h3 align="center">Touch-Free Laptop Control · Powered by Your Hands</h3>
+
 <p align="center">
-  <b>Control your laptop entirely with your hand</b> — no keyboard, no mouse, no touchpad.<br>
-  AirMouse turns your webcam + real-time hand tracking into precise cursor movement,
-  clicks, scrolling, dragging, and typing — with a beautiful tunable control center.
+  Control your laptop entirely in the air — cursor, clicks, scroll, drag &amp; type.<br>
+  No touch needed. Just your hand and a webcam.
 </p>
 
 <p align="center">
-  <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-6C5CE7?style=flat-square">
-  <img alt="MediaPipe" src="https://img.shields.io/badge/MediaPipe-Tasks_API-A855F7?style=flat-square">
-  <img alt="Platform" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-2DD4BF?style=flat-square">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.10%2B-6C5CE7?style=flat-square&logo=python&logoColor=white">
+  <img alt="MediaPipe" src="https://img.shields.io/badge/MediaPipe-Tasks_API-A855F7?style=flat-square&logo=google&logoColor=white">
+  <img alt="Platform" src="https://img.shields.io/badge/macOS_%C2%B7_Linux_%C2%B7_Windows-0EA5E9?style=flat-square&logo=apple&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/License-MIT-2DD4BF?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-3.1-F97316?style=flat-square">
 </p>
+
+---
+
+## Screenshots
+
+<table>
+<tr>
+  <td align="center"><img src="screenshots/studio_dashboard.svg" alt="Studio — Dashboard" width="460"><br><b>Studio · Dashboard</b><br>System check, last-session chart, active config</td>
+  <td align="center"><img src="screenshots/studio_tuning.svg" alt="Studio — Tuning" width="460"><br><b>Studio · Tuning</b><br>Profile cards, quick sensitivity bar, fine sliders</td>
+</tr>
+<tr>
+  <td align="center"><img src="screenshots/studio_gestures.svg" alt="Studio — Gestures" width="460"><br><b>Studio · Gestures</b><br>Visual gesture &amp; hotkey reference cards</td>
+  <td align="center"><img src="screenshots/studio_options.svg" alt="Studio — Options" width="460"><br><b>Studio · Options</b><br>Theme swatches, display, input &amp; scroll toggles</td>
+</tr>
+</table>
+
+---
+
+## ✨ What's New in v3.1
+
+| | |
+|---|---|
+| 🎨 **Two new themes** | Sunset (amber/red) and Ocean (sky-blue/cyan) join Aurora, Cyber, and Mono |
+| 📊 **Dashboard tab** | System check, last-session activity bar chart, quick-stat cards, active config summary |
+| 🃏 **Profile cards** | Click-to-activate profile cards replace the old dropdown |
+| 🚀 **Quick sensitivity bar** | One-tap preset buttons — 🐢 Turtle → 🦊 Slow → ⚡ Balanced → 🦅 Fast → 🚀 Rocket |
+| 🔊 **Sound feedback** | Brief macOS system sounds (afplay) on every gesture click |
+| ✌️ **Visual gesture cards** | Icon + name + action in a clean grid under the Gestures tab |
+| 🎛️ **Theme swatches** | Coloured circle buttons for one-click theme switching |
+| 🔍 **Detection sliders** | Tune detection + tracking confidence directly in the UI |
+| 💡 **Rotating tips** | Tips rotate every 6 s in the preview pane |
+| ✨ **Richer HUD** | Cursor glow rings (cv2.addWeighted), toast accent bar, gradient header strip |
+| 💾 **Session persistence** | Last session saved to `last_session.json` → shown on the Dashboard |
+| 🎬 **Animated launch button** | Launch button pulses between primary and secondary colours |
+| 🎓 **Guided walkthrough** | First-run, step-by-step onboarding — permissions, gestures, how to launch — with a **? Tutorial** button to replay and a *Don't show again* opt-out |
+| 🧭 **In-app coach card** | A getting-started card in the camera window; toggle with `/`, hide forever with `N` |
 
 ---
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| **Buttery cursor** | One Euro Filter — smooth when still, instant when you move (no lag, no jitter) |
-| **Left / right click** | Pinch thumb+index (left) or thumb+middle (right), edge-triggered with hysteresis |
-| **Middle click** | Optional thumb+ring pinch (enable in the GUI, `--middle-click`, or config) |
-| **Double-click** | Pinch thumb+index twice quickly |
-| **Scroll (2-axis)** | Peace sign — move hand up/down and left/right |
-| **Drag** | Fist to grab, open hand to release |
-| **Virtual keyboard** | Hold open palm to toggle; pinch keys to type; live text preview, Caps & Shift |
-| **Function keys** | Volume, mute, play/pause, screenshot, arrows & Esc — built into the keyboard |
-| **Pause / freeze** | Thumbs-up (hold) or `P` to pause; `Space` to freeze the cursor in place |
-| **Tuning profiles** | One-click **Balanced · Precision · Fast · Presentation · Gaming · Accessibility** |
-| **Themes** | **Aurora · Cyber · Mono** — recolours the whole GUI + HUD (`Y` to cycle live) |
-| **Live GUI preview** | AirMouse Studio shows your webcam + tracking + a raw-vs-smoothed cursor dot while you tune |
-| **Scroll inertia** | Optional momentum glide after a scroll gesture, like a trackpad |
-| **Idle auto-pause** | Optionally pause after N seconds with no hand in frame |
-| **Session stats** | Live count of clicks, scrolls, keys & cursor travel (`I`) |
-| **Calibration** | Press `C` — map *your* comfortable hand range to the full screen |
-| **Auto camera** | Scans all ports on first run, saves the working index to config.json |
-| **Always-on-top** | Keep the AirMouse window above everything (`T`, `--always-on-top`, GUI) |
-| **Rich themed HUD** | Mode badge, FPS, gesture labels, click ripples, toasts, in-app help (`H`) |
-| **AirMouse Studio** | `launcher.py` — two-pane control center with a live preview, profiles, themes & sliders |
-| **Client/Server** | Stream gestures from one machine to control another on the same network |
+<table>
+<tr><td>
 
----
+**Buttery cursor**<br>
+One Euro Filter — smooth when still, instant when you move. No lag, no jitter.
 
-## Gesture Reference
+</td><td>
 
-```
-Hand pose                   Action
-──────────────────────────  ────────────────────────────────────
-Index finger pointing       Move cursor
-Pinch thumb + index         Left click   (pinch twice fast = double-click)
-Pinch thumb + middle        Right click
-Pinch thumb + ring          Middle click  (opt-in — enable in Options/--middle-click)
-Index + middle up (peace)   Scroll — move hand up/down, left/right
-Fist (all fingers curled)   Drag — fist to grab, open to drop
-Open palm, hold ~1 s        Toggle virtual keyboard
-Thumbs-up, hold ~0.7 s      Pause / resume control
-```
+**Click suite**<br>
+Left, right, middle (opt-in), and double-click — all with pinch hysteresis.
 
-**In keyboard mode:** your hand moves a cursor over the on-screen QWERTY layout (lower half of the window). Pinch to press the highlighted key. A function row adds **arrows, Esc, volume, mute, play/pause, and screenshot**. `Caps` and `⇧ Shift` are supported; a live preview bar shows what you're typing.
+</td></tr>
+<tr><td>
 
----
+**2-axis scroll**<br>
+Peace sign → move hand up/down/left/right. Optional inertia/momentum glide.
 
-## Hotkeys (while running)
+</td><td>
 
-| Key | Action | Key | Action |
-|---|---|---|---|
-| `H` | Toggle help overlay | `S` | Screenshot |
-| `P` | Pause / resume | `Space` | Freeze / unfreeze cursor |
-| `C` | Calibrate hand range | `L` | Toggle hand skeleton |
-| `G` | Toggle FPS counter | `I` | Toggle session stats |
-| `Y` | Cycle theme | `T` | Toggle always-on-top |
-| `F` | Toggle mirror flip | `+` / `-` | Sensitivity up / down |
-| `[` / `]` | Smoothing softer / snappier | `Q` / `ESC` | Quit (saves settings) |
+**Drag & drop**<br>
+Fist to grab, open hand to drop. Works across monitors.
+
+</td></tr>
+<tr><td>
+
+**Virtual keyboard**<br>
+Hold open palm to toggle. QWERTY + function row + Caps/Shift + live text preview.
+
+</td><td>
+
+**6 tuning profiles**<br>
+Balanced · Precision · Fast · Presentation · Gaming · Accessibility
+
+</td></tr>
+<tr><td>
+
+**5 colour themes**<br>
+Aurora · Cyber · Mono · Sunset · Ocean — recolour GUI + HUD live with `Y`
+
+</td><td>
+
+**AirMouse Studio**<br>
+Beautiful two-pane control centre: tune, preview, profile, and launch.
+
+</td></tr>
+<tr><td>
+
+**Calibration**<br>
+Map your comfortable hand range to the full screen with a 5-second sweep (`C`).
+
+</td><td>
+
+**Client / Server mode**<br>
+Stream gestures from one machine to control another on the same LAN.
+
+</td></tr>
+</table>
 
 ---
 
@@ -86,94 +126,152 @@ cd AirMouse-Hand-Gesture-Control
 pip install -r requirements.txt
 ```
 
-> Core control uses `pynput` (with a `pyautogui` fallback). `customtkinter` + `pillow` are only needed for **AirMouse Studio** (the GUI + live preview) — the standalone `AirMouse.py` runs without them.
+> **Core** uses `pynput` + `pyautogui`. **AirMouse Studio** additionally needs `customtkinter` + `Pillow`; they're included in `requirements.txt`.  
+> The hand-tracking model (~8 MB) is downloaded automatically on first run.
 
 ### macOS permissions (required)
 
-Grant both in **System Settings → Privacy & Security**:
-- **Camera** → Terminal (or your Python interpreter)
-- **Accessibility** → Terminal (needed for mouse/keyboard control)
+Go to **System Settings → Privacy & Security** and grant:
+
+| Permission | Who needs it |
+|---|---|
+| **Camera** | Terminal (or your Python interpreter) |
+| **Accessibility** | Terminal — needed for mouse/keyboard control |
 
 ---
 
 ## Usage
 
-### AirMouse Studio — the GUI control center (easiest)
+### 🖥️ AirMouse Studio — the GUI control centre
 
 ```bash
 python launcher.py
 ```
-A beautiful two-pane control center (needs `customtkinter` + `pillow`):
 
-- **Left — controls**
-  - **Tuning** — pick a profile or fine-tune sensitivity, responsiveness, smoothness, edge margin, scroll speed & click sensitivity with live sliders
-  - **Camera** — scan for and pick a specific webcam (or leave on auto-detect)
-  - **Options** — theme picker, mirror, skeleton, help, FPS, stats, always-on-top, middle-click, horizontal scroll, scroll inertia, and idle auto-pause
-  - **Gestures** — full gesture & hotkey cheat-sheet
-  - **About** — version & repo link
-- **Right — live preview** — press **Start preview** to see your webcam with the hand skeleton and a *raw-vs-smoothed* cursor dot. Drag the Responsiveness / Smoothness sliders and watch the smoothing change in real time. **Your real mouse is never touched in preview**, so it's a safe place to dial things in.
+A beautiful two-pane window appears:
 
-Hit **Launch** (or **Calibrate + launch**); **Save** writes settings to `config.json` without launching.
+**Left pane — 6 tabs**
 
-### Standalone
+| Tab | What's here |
+|---|---|
+| **Dashboard** | System check, last-session bar chart, quick-stat cards, active config |
+| **Tuning** | Profile cards, quick-sensitivity bar 🐢→🚀, 8 fine-tuning sliders |
+| **Camera** | Scan and pick a specific webcam (or leave on auto-detect) |
+| **Options** | Theme swatches/dropdown, display toggles, sound feedback, scrolling, comfort |
+| **Gestures** | Visual gesture cards + hotkey badges |
+| **About** | What's new, tech stack, repo link |
+
+**Right pane — Live Preview**
+
+Click **▶ Start preview** to see your webcam with the hand skeleton and a *raw-vs-smoothed* glow-cursor dot. Drag any slider and watch tracking respond in real time. Your real mouse is **never touched** during preview.
+
+Hit **◈ Launch AirMouse** (or **Calibrate + Launch**); **Save** writes settings to `config.json` without launching.
+
+---
+
+### ⌨️ Standalone
 
 ```bash
 python AirMouse.py
 ```
-On first run the hand-tracking model (~8 MB) is downloaded automatically and the camera index is saved to `config.json`.
 
 #### Command-line options
 
 ```bash
-python AirMouse.py --list-cameras      # show detected cameras and exit
-python AirMouse.py --camera 1          # force a specific camera index
-python AirMouse.py --calibrate         # run hand-range calibration on startup
-python AirMouse.py --no-flip           # disable the mirror flip
-python AirMouse.py --sensitivity 1.8   # override cursor sensitivity
-python AirMouse.py --profile Precision # tuning profile (Balanced/Precision/Fast/Presentation/Gaming/Accessibility)
-python AirMouse.py --theme Cyber       # visual theme (Aurora/Cyber/Mono)
-python AirMouse.py --always-on-top     # keep the window above other windows
-python AirMouse.py --middle-click      # enable the thumb+ring middle-click gesture
-python AirMouse.py --reset-config      # delete config.json and start fresh
+python AirMouse.py --list-cameras           # show detected cameras and exit
+python AirMouse.py --camera 1               # force a specific camera index
+python AirMouse.py --calibrate              # run hand-range calibration on startup
+python AirMouse.py --no-flip                # disable the mirror flip
+python AirMouse.py --sensitivity 1.8        # override cursor sensitivity
+python AirMouse.py --profile Precision      # Balanced / Precision / Fast / Presentation / Gaming / Accessibility
+python AirMouse.py --theme Sunset           # Aurora / Cyber / Mono / Sunset / Ocean
+python AirMouse.py --always-on-top          # keep the window above other windows
+python AirMouse.py --middle-click           # enable the thumb+ring middle-click gesture
+python AirMouse.py --reset-config           # delete config.json and start fresh
 ```
 
-### Tuning profiles
+---
 
-Switch the cursor "feel" in one move — from Studio's **Tuning** tab or the CLI:
+## Gesture Reference
+
+<table>
+<tr><th>Hand pose</th><th>Action</th></tr>
+<tr><td>👆 Index finger pointing</td><td>Move cursor</td></tr>
+<tr><td>🤌 Pinch thumb + index</td><td>Left click &nbsp;·&nbsp; pinch twice quickly = double-click</td></tr>
+<tr><td>🤏 Pinch thumb + middle</td><td>Right click</td></tr>
+<tr><td>🖐️ Pinch thumb + ring</td><td>Middle click (opt-in — enable in Options)</td></tr>
+<tr><td>✌️ Peace sign</td><td>Scroll — move hand up / down / left / right</td></tr>
+<tr><td>✊ Fist</td><td>Drag — fist to grab, open hand to drop</td></tr>
+<tr><td>🖐️ Open palm (hold ~1 s)</td><td>Toggle virtual keyboard</td></tr>
+<tr><td>👍 Thumbs-up (hold ~0.7 s)</td><td>Pause / resume cursor control</td></tr>
+</table>
+
+**In keyboard mode:** your hand moves over a QWERTY overlay in the lower half of the window. Pinch to press the highlighted key. A function row adds arrows, Esc, volume, mute, play/pause, and screenshot. Caps Lock and Shift are supported; a live preview bar shows what you're typing.
+
+---
+
+## New here? Guided walkthrough & help
+
+AirMouse explains itself so you never have to guess what to do:
+
+- **First-run walkthrough** — the first time you open AirMouse Studio, a step-by-step
+  guide walks you through granting **Camera + Accessibility** access (with a one-click
+  button to open the right macOS settings pane), the core gestures, tuning, and how to
+  launch. Tick **Don't show this again** to opt out, or replay it anytime from the
+  **? Tutorial** button in the header or **Options → Replay the walkthrough**.
+- **In-app coach card** — when the camera window opens, a compact *Getting Started*
+  card shows the key gestures and how to reach the full guide. It auto-hides after a few
+  seconds. Press `/` to show/hide it, or `N` to never show it again. (Re-enable both from
+  **Studio → Options → Guidance**.)
+
+Everything is opt-out and remembered in `config.json`, so power users never see it twice.
+
+---
+
+## Hotkeys (while running)
+
+| Key | Action | Key | Action |
+|---|---|---|---|
+| `H` | Toggle help overlay | `S` | Screenshot |
+| `/` | Show / hide tips card | `N` | Never show tips again |
+| `P` / `Space` | Pause / freeze cursor | `C` | Calibrate hand range |
+| `L` | Toggle hand skeleton | `G` / `I` | Toggle FPS / stats |
+| `Y` | Cycle theme live | `T` | Toggle always-on-top |
+| `F` | Toggle mirror flip | `+` / `−` | Sensitivity up / down |
+| `[` / `]` | Smoothing softer / snappier | `Q` / `ESC` | Quit (saves settings) |
+
+---
+
+## Tuning Profiles
+
+One-click presets — switch in Studio or via `--profile`:
 
 | Profile | Best for |
 |---|---|
-| **Balanced** | Everyday use (default) |
-| **Precision** | Fine, deliberate pointing — slower & smoother |
-| **Fast** | Big screens / quick navigation — snappier & faster |
-| **Presentation** | Pointing while presenting — steady with relaxed clicks |
-| **Gaming** | Maximum speed & reach |
-| **Accessibility** | Very smooth & forgiving — slow, large dead zone |
+| ⚡ **Balanced** | Everyday use (default) |
+| 🎯 **Precision** | Fine, deliberate pointing — slower & smoother |
+| 🦅 **Fast** | Big screens / quick navigation |
+| 📊 **Presentation** | Pointing while presenting — steady, relaxed clicks |
+| 🎮 **Gaming** | Maximum speed & reach |
+| ♿ **Accessibility** | Extra-smooth & forgiving — slow, large dead zone |
 
-A profile only changes the tuning sliders; your camera, calibration and toggles are left untouched. Moving any slider switches the profile to **Custom**.
+Moving any slider switches the profile to **Custom**.
 
-### Themes
+---
 
-Three built-in looks recolour the entire GUI **and** the in-app HUD:
+## Themes
 
-| Theme | Vibe |
-|---|---|
-| **Aurora** | Indigo → violet → teal (default) |
-| **Cyber** | Neon cyan + magenta on near-black |
-| **Mono** | Clean charcoal with a single blue accent |
+Five built-in colour schemes recolour the **entire GUI and the in-app HUD**:
 
-Switch in Studio's **Options** tab, with `--theme`, or live with `Y` while running.
+| Theme | Vibe | Primary | Accent |
+|---|---|---|---|
+| 🌌 **Aurora** | Indigo → violet → teal (default) | `#6C5CE7` | `#2DD4BF` |
+| 💻 **Cyber** | Neon cyan + magenta on near-black | `#00FFFF` | `#FF00FF` |
+| 🖤 **Mono** | Clean charcoal + steel blue | `#60A5FA` | `#93C5FD` |
+| 🌅 **Sunset** | Warm amber → fire red | `#F97316` | `#FDE68A` |
+| 🌊 **Ocean** | Sky blue → cyan | `#0EA5E9` | `#67E8F9` |
 
-### Client / Server mode (two machines on the same network)
-
-Run on the machine you want to **control** (the server):
-```bash
-python AirMouse_Server.py
-```
-Run on the machine with the **camera** (the client):
-```bash
-python AirMouse_Client.py <server_ip>
-```
+Switch in Studio → Options, with `--theme`, or live with `Y` while running.
 
 ---
 
@@ -181,9 +279,25 @@ python AirMouse_Client.py <server_ip>
 
 By default AirMouse maps the central ~76% of the camera frame to your full screen. For a perfect fit to *your* reach:
 
-1. Press `C` (or launch with `--calibrate`, or use the launcher's "Calibrate then launch").
-2. For 5 seconds, move your hand to the **four corners** of your comfortable range.
-3. The box is saved to `config.json` and used for cursor mapping from then on.
+1. Press `C` (or use **Calibrate + Launch** in Studio, or `--calibrate` CLI flag).
+2. For ~5 seconds, sweep your index finger to the **four corners** of your comfortable range.
+3. The bounding box is saved to `config.json` and used for all future cursor mapping.
+
+---
+
+## Client / Server mode
+
+Stream gesture control across two machines on the same LAN:
+
+```bash
+# On the machine you want to CONTROL (no camera needed)
+python AirMouse_Server.py
+
+# On the machine with the CAMERA
+python AirMouse_Client.py <server_ip>
+```
+
+Uses a safe `struct`-based binary protocol (not pickle).
 
 ---
 
@@ -193,89 +307,95 @@ By default AirMouse maps the central ~76% of the camera frame to your full scree
 
 | Key | Default | Description |
 |---|---|---|
-| `camera_index` | auto | Webcam index; set manually if auto-detection is wrong |
-| `use_one_euro` | true | Use the One Euro Filter (recommended) instead of plain EMA |
-| `oe_min_cutoff` | 1.0 | Lower → smoother when the hand is still |
-| `oe_beta` | 0.012 | Higher → snappier when the hand moves fast |
+| `camera_index` | −1 | Webcam index; −1 = auto-detect |
+| `oe_min_cutoff` | 1.0 | Lower → smoother when still |
+| `oe_beta` | 0.012 | Higher → snappier when moving fast |
 | `sensitivity` | 1.4 | Cursor speed multiplier |
 | `cursor_margin` | 0.12 | Edge fraction ignored when not calibrated |
-| `click_threshold` / `click_release` | 0.055 / 0.085 | Pinch engage / release distances (hysteresis) |
-| `double_click_window` | 0.40 | Seconds within which two clicks become a double-click |
+| `click_threshold` | 0.055 | Pinch distance to engage click |
+| `click_release` | 0.085 | Pinch distance to release (hysteresis) |
+| `double_click_window` | 0.40 | Window (s) for double-click detection |
 | `scroll_speed` | 4 | Scroll magnitude |
-| `horizontal_scroll` | true | Enable left/right scroll in the peace gesture |
-| `keyboard_toggle_hold` | 0.9 | Open-palm seconds to toggle the keyboard |
-| `pause_toggle_hold` | 0.7 | Thumbs-up seconds to pause/resume |
-| `profile` | Balanced | Active tuning profile (or `Custom`) |
-| `theme` | Aurora | Visual theme (`Aurora` / `Cyber` / `Mono`) |
-| `enable_middle_click` | false | Thumb+ring pinch → middle click |
-| `scroll_inertia` / `scroll_friction` | false / 0.85 | Momentum glide after scrolling + its decay |
-| `idle_pause_secs` | 0 | Auto-pause after N seconds with no hand (0 = off) |
-| `show_stats` | false | Show the live session-stats line in the HUD |
-| `always_on_top` | false | Keep the AirMouse window above other windows |
+| `horizontal_scroll` | true | Left/right scroll in peace gesture |
+| `scroll_inertia` | false | Momentum glide after scroll gesture |
+| `keyboard_toggle_hold` | 0.9 | Open-palm hold (s) to toggle keyboard |
+| `pause_toggle_hold` | 0.7 | Thumbs-up hold (s) to pause/resume |
+| `profile` | Balanced | Active tuning profile |
+| `theme` | Aurora | Visual theme |
+| `enable_middle_click` | false | Thumb+ring → middle click |
+| `idle_pause_secs` | 0 | Auto-pause after N seconds with no hand |
+| `sound_feedback` | false | Play click sounds on gesture events (macOS) |
+| `always_on_top` | false | Keep the AirMouse window above others |
+| `show_stats` | false | Live session-stats line in the HUD |
+| `show_tutorial` | true | Show the Studio walkthrough on launch |
+| `coach_overlay` | true | Show the first-run coach card in the camera window |
 | `flip` | true | Mirror the camera image |
-| `screenshot_dir` | screenshots | Where `S` / the screenshot key saves PNGs |
-
-Many of these can also be changed live with hotkeys and are saved on exit.
 
 ---
 
 ## Architecture
 
 ```
-AirMouse.py              Thin CLI entry point — parses args, builds Config, runs the app
-launcher.py              AirMouse Studio — the customtkinter GUI control center + live preview
-AirMouse_Client.py       Client: streams landmark data to the server (safe struct protocol)
+AirMouse.py              CLI entry point — parses args, builds Config, runs the app
+launcher.py              AirMouse Studio — customtkinter GUI control centre + live preview
+AirMouse_Client.py       Client: streams landmark data to the server
 AirMouse_Server.py       Server: drives the mouse from streamed landmark data
-config.py                Config dataclass + tuning PROFILES + JSON persistence (config.json)
+config.py                Config dataclass + tuning PROFILES + JSON persistence
 assets/                  Brand vector logo & README banner (SVG)
 src/
   app.py                 AirMouseApp — camera loop, gesture dispatch, HUD, hotkeys
-  branding.py            App identity + colour THEMES (one source of truth: GUI hex + HUD BGR)
-  stats.py               SessionStats — clicks/scrolls/keys/cursor-travel tracking
+  branding.py            App identity + THEMES (GUI hex + HUD BGR, single source of truth)
+  stats.py               SessionStats — clicks/scrolls/keys/cursor-travel + file persistence
   filters.py             One Euro Filter for low-latency cursor smoothing
-  camera.py              Camera probing, auto-detect, warm-up, open at target resolution
+  camera.py              Camera probing, auto-detect, warm-up, resolution targeting
   hand_tracker.py        MediaPipe HandLandmarker (Tasks API) — auto-downloads model
   gesture.py             Classify 21 landmarks → Gesture enum (edge-triggered clicks)
-  mouse.py               pynput mouse/keyboard with One Euro filtering + scroll inertia
-  actions.py             System actions: volume, media, screenshots, special keys
-  virtual_keyboard.py    QWERTY + function-row overlay with live text preview
-  hud.py                 Themed status bar, help overlay, ripples, toasts, stats, calibration
+  mouse.py               pynput mouse/keyboard + One Euro filtering + scroll inertia
+  actions.py             System actions: volume, media, screenshots, special keys, afplay
+  virtual_keyboard.py    QWERTY + function-row overlay with Caps/Shift + live text preview
+  hud.py                 Themed status bar, help overlay, ripples, toasts, calibration screen
 ```
 
 ---
 
 ## Troubleshooting
 
-**Cursor won't move / clicks don't fire** → Grant Accessibility to Terminal in System Settings → Privacy & Security → Accessibility.
+**Cursor won't move / clicks don't fire**
+→ Grant **Accessibility** to Terminal in System Settings → Privacy & Security → Accessibility.
 
-**Camera not found** → `python AirMouse.py --list-cameras`, then `--camera N` with a listed index.
+**Camera not found**
+→ `python AirMouse.py --list-cameras`, then `--camera N` with a listed index.
 
-**Model download fails / `CERTIFICATE_VERIFY_FAILED`** → a macOS Python SSL quirk (no CA bundle). AirMouse now downloads via `certifi`, so `pip install -r requirements.txt` usually fixes it. Otherwise download the model manually:
+**Model download fails / `CERTIFICATE_VERIFY_FAILED`**
+→ A macOS Python SSL quirk (no CA bundle). AirMouse downloads via `certifi`; `pip install -r requirements.txt` usually fixes it. If not:
 ```bash
 curl -fL -o hand_landmarker.task \
   "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
 ```
 
-**Jittery cursor** → Press `[` a few times (softer smoothing), or lower `oe_beta` in config. Ensure good lighting.
+**Jittery cursor**
+→ Press `[` a few times (softer smoothing), or lower `oe_beta` in config. Ensure good lighting.
 
-**Cursor doesn't reach screen edges** → Calibrate with `C`, or lower `cursor_margin`, or raise sensitivity with `+`.
+**Cursor doesn't reach screen edges**
+→ Calibrate with `C`, or lower `cursor_margin`, or raise sensitivity with `+`.
 
-**Accidental clicks** → Raise `click_threshold` slightly, or increase `click_cooldown`.
+**Accidental clicks**
+→ Raise `click_threshold` slightly, or increase `click_cooldown` in `config.json`.
 
 ---
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.10 +
 - Webcam
-- macOS / Linux / Windows
+- macOS · Linux · Windows
 
 ---
 
 ## License
 
-MIT — educational and personal use.
+MIT — free for educational and personal use.
 
 ---
 
-Created and maintained by [**at0m-b0mb**](https://github.com/at0m-b0mb).
+<p align="center">Created and maintained by <a href="https://github.com/at0m-b0mb"><b>at0m-b0mb</b></a></p>

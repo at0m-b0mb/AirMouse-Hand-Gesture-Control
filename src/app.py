@@ -8,7 +8,11 @@ from __future__ import annotations
 import logging
 import time
 
+from pathlib import Path
+
 from src import actions, branding, hud
+
+_STATS_PATH = Path(__file__).parent.parent / "last_session.json"
 from src.camera import detect_camera, open_camera
 from src.gesture import Gesture, GestureEngine
 from src.hand_tracker import HandTracker
@@ -60,6 +64,9 @@ class AirMouseApp:
         self.log = logging.getLogger("airmouse")
         self.frozen = False
         self.show_help = cfg.show_help
+        # First-run coach card: visible if enabled, auto-hides after a grace window.
+        self.show_coach = cfg.coach_overlay
+        self._coach_until = time.time() + 18.0
         self.stats = SessionStats()
         self.toast = hud.Toast()
         self.ripples = hud.Ripples()
@@ -111,6 +118,7 @@ class AirMouseApp:
 
         self.mouse.stop_drag()
         self.cfg.save()
+        self.stats.save_to_file(_STATS_PATH)
         self.tracker.close()
         cap.release()
         cv2.destroyAllWindows()
@@ -183,6 +191,16 @@ class AirMouseApp:
             hud.draw_gesture_label(frame, self.engine.label, nx, ny)
         hud.draw_hints(frame, self.engine)
         hud.draw_watermark(frame)
+
+        # First-run coach card (hidden during keyboard / calibration / help).
+        if (self.show_coach and not self.engine.in_keyboard_mode
+                and not self.calib.active and not self.show_help):
+            remaining = self._coach_until - time.time()
+            if remaining <= 0:
+                self.show_coach = False
+            else:
+                hud.draw_coach(frame, remaining)
+
         self.toast.draw(frame)
 
         if self.calib.active:
@@ -218,15 +236,23 @@ class AirMouseApp:
         elif g == Gesture.LEFT_CLICK:
             self.mouse.stop_drag(); self.mouse.left_click(); self.stats.left_click()
             self.ripples.add(int(nx * cw), int(ny * ch), branding.bgr("success"))
+            if self.cfg.sound_feedback:
+                actions.play_click("Tock")
         elif g == Gesture.DOUBLE_CLICK:
             self.mouse.stop_drag(); self.mouse.double_click(); self.stats.double_click()
             self.ripples.add(int(nx * cw), int(ny * ch), branding.bgr("accent"))
+            if self.cfg.sound_feedback:
+                actions.play_click("Pop")
         elif g == Gesture.RIGHT_CLICK:
             self.mouse.stop_drag(); self.mouse.right_click(); self.stats.right_click()
             self.ripples.add(int(nx * cw), int(ny * ch), branding.bgr("secondary"))
+            if self.cfg.sound_feedback:
+                actions.play_click("Morse")
         elif g == Gesture.MIDDLE_CLICK:
             self.mouse.stop_drag(); self.mouse.middle_click(); self.stats.middle_click()
             self.ripples.add(int(nx * cw), int(ny * ch), branding.bgr("warning"))
+            if self.cfg.sound_feedback:
+                actions.play_click("Tock")
         elif g == Gesture.SCROLL:
             self.mouse.stop_drag()
             ax, ay = self.engine.scroll_anchor(lm)
@@ -298,6 +324,15 @@ class AirMouseApp:
             return True
         elif key in (ord("h"), ord("H")):
             self.show_help = not self.show_help
+        elif key == ord("/"):  # toggle the getting-started coach card
+            self.show_coach = not self.show_coach
+            if self.show_coach:
+                self._coach_until = time.time() + 18.0
+            toast.show("Tips shown" if self.show_coach else "Tips hidden")
+        elif key in (ord("n"), ord("N")):  # never show the coach again
+            self.show_coach = False
+            cfg.coach_overlay = False
+            toast.show("Getting-started tips off (re-enable in Studio)")
         elif key in (ord("p"), ord("P")):
             engine.toggle_pause(); toast.show("Paused" if engine.paused else "Resumed")
         elif key == 32:  # Space
@@ -356,6 +391,6 @@ class AirMouseApp:
         print("  Fist                       → Drag")
         print("  Open palm, hold            → Toggle virtual keyboard")
         print("  Thumbs-up, hold            → Pause / resume")
-        print("\n[Hotkeys] H help · P pause · Space freeze · C calibrate · S shot · "
-              "L landmarks · G fps · I stats · Y theme · T on-top · F flip · "
+        print("\n[Hotkeys] H help · / tips · P pause · Space freeze · C calibrate · "
+              "S shot · L landmarks · G fps · I stats · Y theme · T on-top · F flip · "
               "+/- sens · [ ] smooth · Q quit\n")

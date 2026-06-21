@@ -100,3 +100,16 @@ def screenshot(out_dir: str = "screenshots") -> Optional[str]:
 
 def is_token(s: str) -> bool:
     return s in _KEY_TOKENS or s in _MEDIA_TOKENS or s == "SCRNSHOT"
+
+
+def play_click(sound: str = "Tock") -> None:
+    """Play a brief macOS system sound for gesture feedback. Silent on other platforms."""
+    import subprocess
+    if platform.system() != "Darwin":
+        return
+    try:
+        subprocess.Popen(
+            ["afplay", f"/System/Library/Sounds/{sound}.aiff"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass

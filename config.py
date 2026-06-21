@@ -86,6 +86,11 @@ class Config:
     # ── Misc ──────────────────────────────────────────────────────────────────
     screenshot_dir: str = "screenshots"
     log_level: str = "INFO"
+    sound_feedback: bool = False    # Play a brief click sound on gesture events
+
+    # ── Onboarding / tutorial ─────────────────────────────────────────────────
+    show_tutorial: bool = True      # Show the Studio welcome walkthrough on launch
+    coach_overlay: bool = True      # Show the first-run coach card in the camera window
 
     # ── Hand detection ────────────────────────────────────────────────────────
     max_hands: int = 1

@@ -86,3 +86,24 @@ class SessionStats:
             "Screenshots": self.screenshots,
             "Cursor travel": f"{int(self.distance_px)} px",
         }
+
+    def save_to_file(self, path) -> None:
+        """Persist session summary to JSON (used by the launcher Dashboard)."""
+        import json
+        from pathlib import Path
+        data = {**self.summary(), "saved_at": time.strftime("%Y-%m-%d %H:%M")}
+        try:
+            Path(path).write_text(json.dumps(data, indent=2))
+        except Exception:
+            pass
+
+    @classmethod
+    def load_from_file(cls, path) -> "dict | None":
+        """Return the last-session dict or None if the file is missing/corrupt."""
+        import json
+        from pathlib import Path
+        try:
+            p = Path(path)
+            return json.loads(p.read_text()) if p.exists() else None
+        except Exception:
+            return None

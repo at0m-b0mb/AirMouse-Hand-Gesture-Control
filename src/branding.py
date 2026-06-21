@@ -8,9 +8,9 @@ from __future__ import annotations
 
 # ── Identity ────────────────────────────────────────────────────────────────────
 APP_NAME = "AirMouse"
-APP_TAGLINE = "Gesture Laptop Controller"
-APP_BLURB = "Control your laptop with your hand — cursor, clicks, scroll, drag & type, all in the air."
-VERSION = "3.0"
+APP_TAGLINE = "Touch-Free Laptop Control · Powered by Your Hands"
+APP_BLURB = "Control your laptop entirely in the air — cursor, clicks, scroll, drag & type.\nNo touch needed. Just your hand and a webcam."
+VERSION = "3.1"
 AUTHOR = "at0m-b0mb"
 REPO_URL = "https://github.com/at0m-b0mb/AirMouse-Hand-Gesture-Control"
 
@@ -38,6 +38,20 @@ THEMES: dict[str, dict[str, object]] = {
         "text": "#E5E7EB", "muted": "#8B92A0",
         "success": "#34D399", "warning": "#FBBF24", "danger": "#F87171",
         "gradient": ["#3B82F6", "#60A5FA", "#93C5FD"],
+    },
+    "Sunset": {
+        "bg": "#0D0804", "surface": "#1A100A", "surface2": "#2A1A10",
+        "primary": "#F97316", "secondary": "#EF4444", "accent": "#FDE68A",
+        "text": "#FEF3C7", "muted": "#92400E",
+        "success": "#86EFAC", "warning": "#FDE68A", "danger": "#EF4444",
+        "gradient": ["#F97316", "#EF4444", "#FDE68A"],
+    },
+    "Ocean": {
+        "bg": "#020C12", "surface": "#04182A", "surface2": "#0A2840",
+        "primary": "#0EA5E9", "secondary": "#06B6D4", "accent": "#67E8F9",
+        "text": "#E0F2FE", "muted": "#374E5C",
+        "success": "#34D399", "warning": "#FBBF24", "danger": "#F87171",
+        "gradient": ["#0EA5E9", "#06B6D4", "#67E8F9"],
     },
 }
 

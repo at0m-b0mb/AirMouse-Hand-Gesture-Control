@@ -21,6 +21,7 @@ _HELP_LINES = [
     ("", ""),
     ("HOTKEYS", ""),
     ("H", "Toggle this help"),
+    ("/  /  N", "Show-hide tips  /  never show"),
     ("P / Space", "Pause / freeze cursor"),
     ("C", "Calibrate hand range"),
     ("S", "Screenshot"),
@@ -51,11 +52,16 @@ class Toast:
         (tw, th), _ = cv2.getTextSize(self._msg, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
         x = (w - tw) // 2
         y = int(h * 0.16)
-        pad = 12
+        pad = 14
+        # Background pill
         ov = frame.copy()
         cv2.rectangle(ov, (x - pad, y - th - pad), (x + tw + pad, y + pad),
                       b.bgr("surface2"), -1)
-        cv2.addWeighted(ov, 0.78, frame, 0.22, 0, frame)
+        cv2.addWeighted(ov, 0.88, frame, 0.12, 0, frame)
+        # Colored left accent bar
+        cv2.rectangle(frame, (x - pad, y - th - pad), (x - pad + 4, y + pad),
+                      b.bgr("accent"), -1)
+        # Message text
         cv2.putText(frame, self._msg, (x, y),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, b.bgr("accent"), 2, cv2.LINE_AA)
 
@@ -86,9 +92,13 @@ class Ripples:
 def draw_status_bar(frame, fps, engine, sensitivity, calibrated,
                     show_fps=True, frozen=False):
     h, w = frame.shape[:2]
-    cv2.rectangle(frame, (0, 0), (w, 34), b.bgr("surface"), -1)
-    cv2.line(frame, (0, 34), (w, 34), b.bgr("primary"), 1, cv2.LINE_AA)
 
+    # Frosted-glass dark strip
+    ov = frame.copy()
+    cv2.rectangle(ov, (0, 0), (w, 36), b.bgr("surface"), -1)
+    cv2.addWeighted(ov, 0.92, frame, 0.08, 0, frame)
+
+    # Mode indicator
     if frozen:
         mode, color = "FROZEN", b.bgr("warning")
     elif engine.paused:
@@ -97,24 +107,29 @@ def draw_status_bar(frame, fps, engine, sensitivity, calibrated,
         mode, color = "KEYBOARD", b.bgr("accent")
     else:
         mode, color = "MOUSE", b.bgr("primary")
-    # accent dot + mode
-    cv2.circle(frame, (16, 17), 5, color, -1, cv2.LINE_AA)
-    cv2.putText(frame, mode, (30, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2, cv2.LINE_AA)
 
-    tag = f"sens {sensitivity:.1f}   {'CAL' if calibrated else 'margin'}"
-    cv2.putText(frame, tag, (170, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+    # Glowing dot + mode label
+    cv2.circle(frame, (16, 18), 6, color, -1, cv2.LINE_AA)
+    cv2.circle(frame, (16, 18), 9, color, 1, cv2.LINE_AA)  # outer ring
+    cv2.putText(frame, mode, (30, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2, cv2.LINE_AA)
+
+    tag = f"sens {sensitivity:.1f}   {'◈ CAL' if calibrated else 'margin'}"
+    cv2.putText(frame, tag, (170, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
                 b.bgr("muted"), 1, cv2.LINE_AA)
     if show_fps:
-        cv2.putText(frame, f"FPS {fps}", (w - 150, 23), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, b.bgr("muted"), 1, cv2.LINE_AA)
-    cv2.putText(frame, "H help", (w - 70, 23), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
+        cv2.putText(frame, f"{fps} fps", (w - 130, 24), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.45, b.bgr("muted"), 1, cv2.LINE_AA)
+    cv2.putText(frame, "H help", (w - 66, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.42,
                 b.bgr("muted"), 1, cv2.LINE_AA)
 
-    # hold-progress bars
+    # Colored bottom border
+    cv2.line(frame, (0, 36), (w, 36), b.bgr("primary"), 2, cv2.LINE_AA)
+
+    # Hold-progress bar (under the border)
     for prog, col in ((engine.palm_progress, b.bgr("accent")),
                       (engine.pause_progress, b.bgr("warning"))):
         if 0 < prog < 1.0:
-            cv2.rectangle(frame, (0, 34), (int(w * prog), 39), col, -1)
+            cv2.rectangle(frame, (0, 38), (int(w * prog), 42), col, -1)
             break
 
 
@@ -123,11 +138,22 @@ def draw_gesture_label(frame, label, nx, ny):
         return
     h, w = frame.shape[:2]
     x, y = int(nx * w), int(ny * h)
+
+    # Glow rings — concentric soft halos around the cursor
+    for radius, alpha in ((22, 0.08), (14, 0.14)):
+        ov = frame.copy()
+        cv2.circle(ov, (x, y), radius, b.bgr("accent"), -1, cv2.LINE_AA)
+        cv2.addWeighted(ov, alpha, frame, 1 - alpha, 0, frame)
+
+    # Solid cursor ring + centre dot
+    cv2.circle(frame, (x, y), 9, b.bgr("accent"), 2, cv2.LINE_AA)
+    cv2.circle(frame, (x, y), 3, b.bgr("accent"), -1, cv2.LINE_AA)
+
+    # Gesture label with shadow
     cv2.putText(frame, label, (x + 14, y - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 3, cv2.LINE_AA)
     cv2.putText(frame, label, (x + 14, y - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, b.bgr("text"), 1, cv2.LINE_AA)
-    cv2.circle(frame, (x, y), 7, b.bgr("accent"), 2, cv2.LINE_AA)
 
 
 def draw_hints(frame, engine):
@@ -184,6 +210,58 @@ def draw_help(frame):
         y += 24
     cv2.putText(frame, "Press H to close", (x0, int(h * 0.96)),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, b.bgr("muted"), 1, cv2.LINE_AA)
+
+
+_COACH_LINES = [
+    ("Point", "index finger only  -  move the cursor"),
+    ("Pinch", "thumb + index  -  left click"),
+    ("Peace", "index + middle  -  scroll"),
+    ("Fist",  "close your hand  -  drag"),
+]
+
+
+def draw_coach(frame, seconds_left=None):
+    """First-run 'getting started' card. Explains the core gestures and how to
+    reach the full guide. Dismissible — the caller decides when to stop drawing."""
+    h, w = frame.shape[:2]
+    cw, ch = 360, 196
+    x0 = 16
+    y0 = h - ch - 52          # sit above the hints line
+    x1, y1 = x0 + cw, y0 + ch
+
+    # Frosted panel
+    ov = frame.copy()
+    cv2.rectangle(ov, (x0, y0), (x1, y1), b.bgr("surface"), -1)
+    cv2.addWeighted(ov, 0.90, frame, 0.10, 0, frame)
+    # Accent left bar + subtle border
+    cv2.rectangle(frame, (x0, y0), (x0 + 4, y1), b.bgr("primary"), -1)
+    cv2.rectangle(frame, (x0, y0), (x1, y1), b.bgr("surface2"), 1, cv2.LINE_AA)
+
+    # Title
+    cv2.putText(frame, "Getting Started", (x0 + 16, y0 + 30),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.62, b.bgr("accent"), 2, cv2.LINE_AA)
+
+    # Gesture lines
+    yy = y0 + 58
+    for tag, desc in _COACH_LINES:
+        cv2.putText(frame, tag, (x0 + 16, yy), cv2.FONT_HERSHEY_SIMPLEX, 0.48,
+                    b.bgr("primary"), 2, cv2.LINE_AA)
+        cv2.putText(frame, desc, (x0 + 86, yy), cv2.FONT_HERSHEY_SIMPLEX, 0.44,
+                    b.bgr("text"), 1, cv2.LINE_AA)
+        yy += 26
+
+    # Footer controls
+    cv2.line(frame, (x0 + 12, y1 - 36), (x1 - 12, y1 - 36), b.bgr("surface2"), 1, cv2.LINE_AA)
+    cv2.putText(frame, "H = full guide    / = hide    N = never show",
+                (x0 + 16, y1 - 14), cv2.FONT_HERSHEY_SIMPLEX, 0.40,
+                b.bgr("muted"), 1, cv2.LINE_AA)
+
+    # Auto-dismiss countdown chip
+    if seconds_left is not None and seconds_left > 0:
+        chip = f"{int(seconds_left) + 1}s"
+        (tw, _), _ = cv2.getTextSize(chip, cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)
+        cv2.putText(frame, chip, (x1 - tw - 14, y0 + 28),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, b.bgr("muted"), 1, cv2.LINE_AA)
 
 
 def draw_calibration(frame, stage_text, box=None):

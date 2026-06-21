@@ -10,3 +10,6 @@ hand_landmarker.task
 
 # Local camera config — auto-generated
 config.json
+
+# Last-session stats — written on exit, shown on the Studio dashboard
+last_session.json
