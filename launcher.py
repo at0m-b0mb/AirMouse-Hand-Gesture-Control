@@ -661,6 +661,46 @@ class Studio(ctk.CTk):
                       command=lambda: self._open_tutorial(force=True)).pack(
                           fill="x", padx=8, pady=(6, 4))
 
+        self._build_remote(scroll)
+
+    def _build_remote(self, scroll):
+        from src import link_protocol as _link
+        ip = _link.lan_ip()
+        ctk.CTkLabel(scroll, text="Remote Control",
+                     font=ctk.CTkFont(size=12, weight="bold"),
+                     text_color=branding.hx("muted")).pack(anchor="w", padx=8, pady=(12, 2))
+        ctk.CTkLabel(scroll, justify="left", text_color=branding.hx("text"),
+                     font=ctk.CTkFont(size=11),
+                     text="Control ANOTHER computer on your network with your hand.\n"
+                          "This PC becomes the controller; the other PC runs the client.").pack(
+                              anchor="w", padx=8)
+
+        ipbox = ctk.CTkFrame(scroll, fg_color=branding.hx("surface2"), corner_radius=8)
+        ipbox.pack(fill="x", padx=8, pady=(6, 2))
+        ctk.CTkLabel(ipbox, text="This PC's IP", text_color=branding.hx("muted"),
+                     font=ctk.CTkFont(size=11)).pack(side="left", padx=10, pady=6)
+        self._remote_ip_lbl = ctk.CTkLabel(ipbox, text=ip, text_color=branding.hx("accent"),
+                                           font=ctk.CTkFont(size=13, weight="bold"))
+        self._remote_ip_lbl.pack(side="right", padx=10)
+
+        ctk.CTkLabel(scroll, justify="left", text_color=branding.hx("muted"),
+                     font=ctk.CTkFont(family="Menlo", size=10),
+                     text=f"On the other PC:\n   python AirMouse_Client.py {ip}").pack(
+                         anchor="w", padx=8, pady=(2, 4))
+        ctk.CTkButton(scroll, text="🛰  Start control server", height=36,
+                      fg_color=branding.hx("primary"), hover_color=branding.hx("secondary"),
+                      command=self._start_server).pack(fill="x", padx=8, pady=(4, 10))
+
+    def _start_server(self):
+        self._stop_preview()
+        try:
+            subprocess.Popen([sys.executable, str(ROOT / "AirMouse_Server.py")],
+                             cwd=str(ROOT))
+            self._set_status("Remote-control server started — run the client on the other PC",
+                             color=branding.hx("success"))
+        except Exception as exc:
+            self._set_status(f"Couldn't start server: {exc}", error=True)
+
     def _build_theme_swatches(self, parent):
         row = ctk.CTkFrame(parent, fg_color="transparent")
         row.pack(fill="x", padx=8, pady=(0, 6))

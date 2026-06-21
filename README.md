@@ -53,6 +53,7 @@
 | 🎬 **Animated launch button** | Launch button pulses between primary and secondary colours |
 | 🎓 **Guided walkthrough** | First-run, step-by-step onboarding — permissions, gestures, how to launch — with a **? Tutorial** button to replay and a *Don't show again* opt-out |
 | 🧭 **In-app coach card** | A getting-started card in the camera window; toggle with `/`, hide forever with `N` |
+| 🛰️ **Remote control** | Drive another PC with your hand — server (controller) broadcasts high-level commands to one or many clients, with token auth, `--demo`/`--dry-run` test modes, and a one-click launcher in Studio |
 
 ---
 
@@ -285,19 +286,47 @@ By default AirMouse maps the central ~76% of the camera frame to your full scree
 
 ---
 
-## Client / Server mode
+## Remote control — one hand, another computer
 
-Stream gesture control across two machines on the same LAN:
+Use your hand on one machine to drive the mouse on another over your LAN.
+The roles are simple: **the server is the controller** (it has your webcam), and
+**the client is the machine being controlled** (no camera needed). One server can
+control **several clients at once**.
 
 ```bash
-# On the machine you want to CONTROL (no camera needed)
-python AirMouse_Server.py
+# 1) On YOUR machine (the webcam) — the controller:
+python AirMouse_Server.py --token mysecret
 
-# On the machine with the CAMERA
-python AirMouse_Client.py <server_ip>
+#    It prints your LAN IP and the exact command to run on the other PC.
+
+# 2) On the machine you want to CONTROL — the client:
+python AirMouse_Client.py <server_ip> --token mysecret
 ```
 
-Uses a safe `struct`-based binary protocol (not pickle).
+Or just open **AirMouse Studio → Options → Remote Control** and click
+**🛰 Start control server** — it shows this PC's IP and the client command for you.
+
+### What travels the wire
+
+The controller does all the hand-tracking and sends ready-made, high-level
+**commands** — `move`, `click` (left/right/middle), `double-click`, `scroll`,
+`drag` — as fixed-size `struct` frames. **No `pickle`, ever**, so a malicious peer
+can't run code on you. Cursor moves are sent as 0–1 fractions, so any screen size
+drives any other.
+
+| Flag | Side | What it does |
+|---|---|---|
+| `--token <secret>` | both | Shared secret; clients with the wrong token are rejected |
+| `--demo` | server | No camera — broadcast a test pattern (great first check) |
+| `--no-window` | server | Run the controller headless |
+| `--dry-run` | client | Print commands without moving the mouse (safe test) |
+| `--retry` | client | Auto-reconnect with backoff if the link drops |
+| `--port <n>` | both | Use a custom port (default `12345`) |
+
+**Safety:** being a client means another machine can move your mouse — only
+connect to a server you trust, always set a `--token`, and press **Esc** on the
+client (or `Ctrl-C`) to stop instantly. Try `--demo` + `--dry-run` first to verify
+the link end-to-end before any real control happens.
 
 ---
 
@@ -338,8 +367,8 @@ Uses a safe `struct`-based binary protocol (not pickle).
 ```
 AirMouse.py              CLI entry point — parses args, builds Config, runs the app
 launcher.py              AirMouse Studio — customtkinter GUI control centre + live preview
-AirMouse_Client.py       Client: streams landmark data to the server
-AirMouse_Server.py       Server: drives the mouse from streamed landmark data
+AirMouse_Server.py       Controller: tracks your hand, broadcasts commands to clients
+AirMouse_Client.py       Controlled: applies received commands to this machine's mouse
 config.py                Config dataclass + tuning PROFILES + JSON persistence
 assets/                  Brand vector logo & README banner (SVG)
 src/
@@ -354,6 +383,7 @@ src/
   actions.py             System actions: volume, media, screenshots, special keys, afplay
   virtual_keyboard.py    QWERTY + function-row overlay with Caps/Shift + live text preview
   hud.py                 Themed status bar, help overlay, ripples, toasts, calibration screen
+  link_protocol.py       Safe struct command protocol + token handshake for remote control
 ```
 
 ---
