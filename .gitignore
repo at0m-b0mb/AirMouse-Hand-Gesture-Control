@@ -5,6 +5,10 @@ __pycache__/
 .venv
 venv/
 
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+
 # Model file — downloaded automatically on first run (~8 MB)
 hand_landmarker.task
 

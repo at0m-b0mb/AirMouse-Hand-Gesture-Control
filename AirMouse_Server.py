@@ -293,6 +293,7 @@ def _run_demo(hub: ClientHub, stop: threading.Event) -> None:
 # ── Entry point ───────────────────────────────────────────────────────────────────
 def main() -> None:
     p = argparse.ArgumentParser(description="AirMouse Server — control other machines with your hand.")
+    p.add_argument("--version", action="version", version=f"AirMouse Server {branding.VERSION}")
     p.add_argument("--port", type=int, default=link.DEFAULT_PORT, help="TCP port to listen on")
     p.add_argument("--token", default="", help="shared secret clients must match")
     p.add_argument("--camera", type=int, default=-1, help="camera index (-1 = auto)")

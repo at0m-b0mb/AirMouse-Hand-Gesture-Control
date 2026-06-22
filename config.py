@@ -121,6 +121,36 @@ class Config:
                    else getattr(self, k) == v
                    for k, v in preset.items())
 
+    def validate(self) -> "Config":
+        """Clamp every tunable to a sane range so a hand-edited or stale
+        config.json can never put the app into a broken state. Returns self."""
+        def clamp(v, lo, hi):
+            try:
+                return max(lo, min(hi, v))
+            except TypeError:
+                return lo
+
+        self.sensitivity = clamp(self.sensitivity, 0.3, 3.0)
+        self.oe_min_cutoff = clamp(self.oe_min_cutoff, 0.1, 5.0)
+        self.oe_beta = clamp(self.oe_beta, 0.001, 0.1)
+        self.smoothing = clamp(self.smoothing, 0.01, 1.0)
+        self.dead_zone = clamp(self.dead_zone, 0.0, 0.1)
+        self.cursor_margin = clamp(self.cursor_margin, 0.0, 0.45)
+        self.click_threshold = clamp(self.click_threshold, 0.01, 0.2)
+        # Release must sit above engage or clicks would never let go (hysteresis).
+        self.click_release = clamp(self.click_release, self.click_threshold + 0.005, 0.3)
+        self.double_click_window = clamp(self.double_click_window, 0.1, 1.0)
+        self.click_cooldown = clamp(self.click_cooldown, 0.0, 1.0)
+        self.scroll_speed = int(clamp(self.scroll_speed, 1, 20))
+        self.scroll_friction = clamp(self.scroll_friction, 0.0, 0.99)
+        self.keyboard_toggle_hold = clamp(self.keyboard_toggle_hold, 0.2, 3.0)
+        self.pause_toggle_hold = clamp(self.pause_toggle_hold, 0.2, 3.0)
+        self.idle_pause_secs = clamp(self.idle_pause_secs, 0.0, 600.0)
+        self.detection_confidence = clamp(self.detection_confidence, 0.1, 1.0)
+        self.tracking_confidence = clamp(self.tracking_confidence, 0.1, 1.0)
+        self.max_hands = int(clamp(self.max_hands, 1, 2))
+        return self
+
     def save(self) -> None:
         _PATH.write_text(json.dumps(asdict(self), indent=2))
 
@@ -130,7 +160,7 @@ class Config:
             try:
                 raw = json.loads(_PATH.read_text())
                 valid = {k: v for k, v in raw.items() if k in cls.__dataclass_fields__}
-                return cls(**valid)
+                return cls(**valid).validate()
             except Exception:
                 pass
         return cls()

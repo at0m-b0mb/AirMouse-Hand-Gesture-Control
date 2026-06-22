@@ -2,7 +2,7 @@
   <img src="assets/banner.svg" alt="AirMouse — Gesture Laptop Controller" width="100%">
 </p>
 
-<h1 align="center">◈ &nbsp;AirMouse &nbsp;3.1</h1>
+<h1 align="center">◈ &nbsp;AirMouse &nbsp;3.2</h1>
 <h3 align="center">Touch-Free Laptop Control · Powered by Your Hands</h3>
 
 <p align="center">
@@ -15,7 +15,9 @@
   <img alt="MediaPipe" src="https://img.shields.io/badge/MediaPipe-Tasks_API-A855F7?style=flat-square&logo=google&logoColor=white">
   <img alt="Platform" src="https://img.shields.io/badge/macOS_%C2%B7_Linux_%C2%B7_Windows-0EA5E9?style=flat-square&logo=apple&logoColor=white">
   <img alt="License" src="https://img.shields.io/badge/License-MIT-2DD4BF?style=flat-square">
-  <img alt="Version" src="https://img.shields.io/badge/version-3.1-F97316?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-3.2-F97316?style=flat-square">
+  <img alt="CI" src="https://github.com/at0m-b0mb/AirMouse-Hand-Gesture-Control/actions/workflows/ci.yml/badge.svg">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-58_passing-2DD4BF?style=flat-square">
 </p>
 
 ---
@@ -35,7 +37,7 @@
 
 ---
 
-## ✨ What's New in v3.1
+## ✨ What's New in v3.2
 
 | | |
 |---|---|
@@ -54,6 +56,9 @@
 | 🎓 **Guided walkthrough** | First-run, step-by-step onboarding — permissions, gestures, how to launch — with a **? Tutorial** button to replay and a *Don't show again* opt-out |
 | 🧭 **In-app coach card** | A getting-started card in the camera window; toggle with `/`, hide forever with `N` |
 | 🛰️ **Remote control** | Drive another PC with your hand — server (controller) broadcasts high-level commands to one or many clients, with token auth, `--demo`/`--dry-run` test modes, and a one-click launcher in Studio |
+| 🩺 **`--doctor` diagnostics** | `python AirMouse.py --doctor` checks Python, dependencies, the model, cameras and permissions in one shot |
+| 🧪 **Tests + CI** | 58-test pytest suite (protocol, filter, stats, config, gestures) with ruff lint, run on Python 3.10–3.12 via GitHub Actions |
+| 🛡️ **Config self-healing** | `Config.validate()` clamps every setting, so a hand-edited or stale `config.json` can never break the app |
 
 ---
 
@@ -189,7 +194,13 @@ python AirMouse.py --theme Sunset           # Aurora / Cyber / Mono / Sunset / O
 python AirMouse.py --always-on-top          # keep the window above other windows
 python AirMouse.py --middle-click           # enable the thumb+ring middle-click gesture
 python AirMouse.py --reset-config           # delete config.json and start fresh
+python AirMouse.py --doctor                 # run diagnostics (deps, model, cameras, perms)
+python AirMouse.py --version                # print version and exit
 ```
+
+> **First time, or something not working?** Run `python AirMouse.py --doctor` —
+> it checks your Python, every dependency, the model file, your cameras and the
+> macOS permissions, and tells you exactly what's missing.
 
 ---
 
@@ -422,9 +433,24 @@ curl -fL -o hand_landmarker.task \
 
 ---
 
+## Development
+
+```bash
+pip install -r requirements-dev.txt   # adds pytest + ruff
+ruff check .                          # lint
+pytest                                # 58 tests, no webcam needed
+```
+
+The test suite covers the pure-logic core — the remote-control protocol, the One
+Euro filter, session stats, config validation, theming and the gesture engine —
+so it runs anywhere in well under a second. **GitHub Actions** runs ruff + pytest
+on Python 3.10–3.12 for every push and PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
 ## License
 
-MIT — free for educational and personal use.
+[MIT](LICENSE) — free for educational and personal use. See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ---
 

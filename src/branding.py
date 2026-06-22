@@ -10,7 +10,7 @@ from __future__ import annotations
 APP_NAME = "AirMouse"
 APP_TAGLINE = "Touch-Free Laptop Control · Powered by Your Hands"
 APP_BLURB = "Control your laptop entirely in the air — cursor, clicks, scroll, drag & type.\nNo touch needed. Just your hand and a webcam."
-VERSION = "3.1"
+VERSION = "3.2"
 AUTHOR = "at0m-b0mb"
 REPO_URL = "https://github.com/at0m-b0mb/AirMouse-Hand-Gesture-Control"
 

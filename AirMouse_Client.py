@@ -21,6 +21,7 @@ import sys
 import threading
 import time
 
+from src import branding
 from src import link_protocol as link
 
 
@@ -197,6 +198,7 @@ def _session(ip: str, port: int, token: str, applier: Applier, stop: threading.E
 
 def main() -> None:
     p = argparse.ArgumentParser(description="AirMouse Client — let a server control this machine.")
+    p.add_argument("--version", action="version", version=f"AirMouse Client {branding.VERSION}")
     p.add_argument("server_ip", nargs="?", default="127.0.0.1", help="server IP address")
     p.add_argument("--port", type=int, default=link.DEFAULT_PORT)
     p.add_argument("--token", default="", help="shared secret (must match the server)")

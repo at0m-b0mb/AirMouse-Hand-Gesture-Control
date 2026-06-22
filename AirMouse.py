@@ -41,6 +41,75 @@ def _check_deps():
         sys.exit(1)
 
 
+def _doctor() -> int:
+    """Print a health report: deps, model, cameras, permissions. Returns exit code."""
+    import platform
+    from pathlib import Path
+
+    try:
+        from src import branding
+        version = branding.VERSION
+    except Exception:
+        version = "?"
+
+    ok = True
+    print(f"AirMouse {version} — diagnostics\n")
+    print(f"  Python    : {sys.version.split()[0]}  ({platform.python_implementation()})")
+    print(f"  Platform  : {platform.system()} {platform.release()}\n")
+
+    print("  Dependencies")
+    checks = [
+        ("opencv-python", "cv2", True),
+        ("mediapipe", "mediapipe", True),
+        ("numpy", "numpy", True),
+        ("pynput", "pynput", True),
+        ("pyautogui", "pyautogui", False),
+        ("certifi", "certifi", False),
+        ("customtkinter", "customtkinter", False),
+        ("pillow", "PIL", False),
+    ]
+    for label, mod, required in checks:
+        m = _safe_import(mod)
+        ver = getattr(m, "__version__", "") if m else ""
+        if m:
+            print(f"    ✓ {label:<14} {ver}")
+        else:
+            tag = "MISSING (required)" if required else "missing (optional)"
+            print(f"    {'✗' if required else '–'} {label:<14} {tag}")
+            if required:
+                ok = False
+
+    print("\n  Hand-tracking model")
+    model = Path(__file__).parent / "hand_landmarker.task"
+    if model.exists():
+        print(f"    ✓ present  ({model.stat().st_size // (1024*1024)} MB)")
+    else:
+        print("    – not downloaded yet (fetched automatically on first run)")
+
+    print("\n  Cameras")
+    try:
+        from src.camera import list_cameras
+        cams = list_cameras()
+        if cams:
+            for idx, w, h in cams:
+                print(f"    ✓ index {idx}: {w}x{h}")
+        else:
+            print("    ✗ none detected — check the connection / camera permission")
+            ok = False
+    except Exception as exc:
+        print(f"    ✗ probe failed: {exc}")
+        ok = False
+
+    if platform.system() == "Darwin":
+        print("\n  macOS permissions (System Settings → Privacy & Security)")
+        print("    • Camera        → enable for Terminal / your Python")
+        print("    • Accessibility → enable for Terminal / your Python (mouse + keys)")
+
+    print("\n" + ("All good — you're ready to fly. ✦" if ok
+                  else "Some required checks failed — see ✗ above."))
+    return 0 if ok else 1
+
+
 def _parse_args():
     p = argparse.ArgumentParser(
         prog="AirMouse",
@@ -72,11 +141,23 @@ def _parse_args():
                    help="Override cursor sensitivity")
     p.add_argument("--reset-config", action="store_true",
                    help="Delete config.json and start fresh")
+    p.add_argument("--doctor", action="store_true",
+                   help="Run diagnostics (deps, model, cameras, permissions) and exit")
+    p.add_argument("--version", action="store_true",
+                   help="Print the AirMouse version and exit")
     return p.parse_args()
 
 
 def main():
     args = _parse_args()
+
+    if args.version:
+        from src import branding
+        print(f"AirMouse {branding.VERSION}")
+        return
+    if args.doctor:
+        sys.exit(_doctor())
+
     _check_deps()
 
     from config import Config, PROFILES
