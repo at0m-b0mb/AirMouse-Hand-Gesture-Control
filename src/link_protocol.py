@@ -34,13 +34,24 @@ OP_DOUBLE    = 3   # n = button (usually BTN_LEFT)
 OP_SCROLL    = 4   # ax, ay = scroll delta (right+, up+)
 OP_DRAG      = 5   # n = 1 → press & hold,  n = 0 → release
 OP_PAUSE     = 6   # n = 1 → controller paused,  n = 0 → resumed (informational)
+OP_KEY       = 7   # n = Unicode codepoint to type (the virtual keyboard)
+OP_TAP       = 8   # n = special/media key id (see SPECIAL_KEYS / MEDIA_KEYS)
 
 BTN_LEFT, BTN_RIGHT, BTN_MIDDLE = 0, 1, 2
+
+# Special & media keys carried by OP_TAP. Ids are stable wire constants — only
+# ever append, never renumber.
+SPECIAL_KEYS = {
+    "BKSP": 1, "ENTER": 2, "SPACE": 3, "TAB": 4, "ESC": 5,
+    "UP": 6, "DOWN": 7, "LEFT": 8, "RIGHT": 9, "SCRNSHOT": 14,
+}
+MEDIA_KEYS = {"VOL_UP": 10, "VOL_DOWN": 11, "MUTE": 12, "PLAY": 13}
+KEY_ID_TO_NAME = {v: k for k, v in {**SPECIAL_KEYS, **MEDIA_KEYS}.items()}
 
 OP_NAMES = {
     OP_HEARTBEAT: "heartbeat", OP_MOVE: "move", OP_CLICK: "click",
     OP_DOUBLE: "double-click", OP_SCROLL: "scroll", OP_DRAG: "drag",
-    OP_PAUSE: "pause",
+    OP_PAUSE: "pause", OP_KEY: "key", OP_TAP: "tap",
 }
 BTN_NAMES = {BTN_LEFT: "left", BTN_RIGHT: "right", BTN_MIDDLE: "middle"}
 

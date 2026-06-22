@@ -17,7 +17,15 @@
   <img alt="License" src="https://img.shields.io/badge/License-MIT-2DD4BF?style=flat-square">
   <img alt="Version" src="https://img.shields.io/badge/version-3.2-F97316?style=flat-square">
   <img alt="CI" src="https://github.com/at0m-b0mb/AirMouse-Hand-Gesture-Control/actions/workflows/ci.yml/badge.svg">
-  <img alt="Tests" src="https://img.shields.io/badge/tests-58_passing-2DD4BF?style=flat-square">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-69_passing-2DD4BF?style=flat-square">
+</p>
+
+---
+
+## Demo
+
+<p align="center">
+  <img src="assets/demo.svg" alt="AirMouse live demo — glow cursor tracking with cycling gestures" width="640">
 </p>
 
 ---
@@ -57,7 +65,7 @@
 | 🧭 **In-app coach card** | A getting-started card in the camera window; toggle with `/`, hide forever with `N` |
 | 🛰️ **Remote control** | Drive another PC with your hand — server (controller) broadcasts high-level commands to one or many clients, with token auth, `--demo`/`--dry-run` test modes, and a one-click launcher in Studio |
 | 🩺 **`--doctor` diagnostics** | `python AirMouse.py --doctor` checks Python, dependencies, the model, cameras and permissions in one shot |
-| 🧪 **Tests + CI** | 58-test pytest suite (protocol, filter, stats, config, gestures) with ruff lint, run on Python 3.10–3.12 via GitHub Actions |
+| 🧪 **Tests + CI** | 69-test pytest suite (protocol, filter, stats, config, gestures, mouse mapping) with ruff lint, run on Python 3.10–3.12 via GitHub Actions |
 | 🛡️ **Config self-healing** | `Config.validate()` clamps every setting, so a hand-edited or stale `config.json` can never break the app |
 
 ---
@@ -321,9 +329,11 @@ Or just open **AirMouse Studio → Options → Remote Control** and click
 
 The controller does all the hand-tracking and sends ready-made, high-level
 **commands** — `move`, `click` (left/right/middle), `double-click`, `scroll`,
-`drag` — as fixed-size `struct` frames. **No `pickle`, ever**, so a malicious peer
-can't run code on you. Cursor moves are sent as 0–1 fractions, so any screen size
-drives any other.
+`drag`, and **`type`** (hold an open palm to bring up the virtual keyboard and
+pinch keys to type on the remote machine, including Enter/arrows/volume) — as
+fixed-size `struct` frames. **No `pickle`, ever**, so a malicious peer can't run
+code on you. Cursor moves are sent as 0–1 fractions, so any screen size drives
+any other.
 
 | Flag | Side | What it does |
 |---|---|---|
@@ -438,7 +448,7 @@ curl -fL -o hand_landmarker.task \
 ```bash
 pip install -r requirements-dev.txt   # adds pytest + ruff
 ruff check .                          # lint
-pytest                                # 58 tests, no webcam needed
+pytest                                # 69 tests, no webcam needed
 ```
 
 The test suite covers the pure-logic core — the remote-control protocol, the One

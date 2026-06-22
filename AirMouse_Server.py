@@ -109,10 +109,11 @@ def _accept_loop(srv: socket.socket, hub: ClientHub, token: str, stop: threading
 class Controller:
     """Turns a stream of gestures into link commands and broadcasts them."""
 
-    def __init__(self, hub: ClientHub, scroll_speed: int, enable_middle: bool):
+    def __init__(self, hub: ClientHub, scroll_speed: int, enable_middle: bool, kbd=None):
         self.hub = hub
         self.scroll_speed = scroll_speed
         self.enable_middle = enable_middle
+        self.kbd = kbd
         self._dragging = False
         self._scroll_prev = None
         self._was_paused = False
@@ -131,6 +132,11 @@ class Controller:
             self.last_event = "paused" if engine.paused else "resumed"
         if engine.paused:
             self._end_drag()
+            return
+
+        # Keyboard mode: pinch over the on-screen keys to type on the client(s).
+        if engine.in_keyboard_mode and self.kbd is not None:
+            self._handle_keyboard(gesture, engine, lm)
             return
 
         nx, ny = engine.cursor_pos(lm)
@@ -179,6 +185,28 @@ class Controller:
         else:
             self._end_drag()
 
+    def _handle_keyboard(self, gesture, engine, lm) -> None:
+        from src.gesture import Gesture
+        self._end_drag()
+        self._scroll_prev = None
+        nx, ny = engine.cursor_pos(lm)
+        self.kbd.update_hover(nx, ny)
+        if gesture in (Gesture.LEFT_CLICK, Gesture.DOUBLE_CLICK):
+            action = self.kbd.try_press(nx, ny)   # None for state-only keys (shift/caps)
+            if action:
+                self._send_key(action)
+                self.kbd.note_preview(action)
+                self.last_event = f"key: {action}"
+
+    def _send_key(self, action: str) -> None:
+        if action in link.SPECIAL_KEYS:
+            self._send(link.OP_TAP, 0, 0, link.SPECIAL_KEYS[action])
+        elif action in link.MEDIA_KEYS:
+            self._send(link.OP_TAP, 0, 0, link.MEDIA_KEYS[action])
+        elif len(action) == 1:
+            ch = self.kbd.resolve_char(action)
+            self._send(link.OP_KEY, 0, 0, ord(ch))
+
     def no_hand(self) -> None:
         self._end_drag()
         self._scroll_prev = None
@@ -196,13 +224,15 @@ def _run_camera(hub: ClientHub, args) -> None:
     from src.camera import detect_camera, open_camera
     from src.hand_tracker import HandTracker
     from src.gesture import GestureEngine
+    from src.virtual_keyboard import VirtualKeyboard
 
     branding.use(args.theme)
     cam_idx = detect_camera(args.camera)
     cap, cam_w, cam_h = open_camera(cam_idx)
     tracker = HandTracker()
     engine = GestureEngine(enable_middle_click=args.middle_click)
-    ctrl = Controller(hub, args.scroll_speed, args.middle_click)
+    kbd = VirtualKeyboard(cam_w, cam_h)
+    ctrl = Controller(hub, args.scroll_speed, args.middle_click, kbd=kbd)
 
     if not args.no_window:
         cv2.namedWindow(WIN, cv2.WINDOW_NORMAL)
@@ -238,6 +268,8 @@ def _run_camera(hub: ClientHub, args) -> None:
                 fps, fps_n, fps_t = fps_n, 0, time.time()
 
             if not args.no_window:
+                if engine.in_keyboard_mode:
+                    kbd.draw(frame)
                 _draw_overlay(cv2, frame, hub, ctrl, engine, fps)
                 cv2.imshow(WIN, frame)
                 if cv2.waitKey(1) & 0xFF in (ord("q"), ord("Q"), 27):

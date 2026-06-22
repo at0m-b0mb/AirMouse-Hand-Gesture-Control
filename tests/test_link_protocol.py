@@ -70,3 +70,28 @@ def test_lan_ip_returns_dotted_quad():
     ip = link.lan_ip()
     parts = ip.split(".")
     assert len(parts) == 4 and all(p.isdigit() for p in parts)
+
+
+def test_key_codepoint_roundtrips():
+    # 'A' over the wire
+    op, _, _, n = link.unpack(link.pack(link.OP_KEY, 0, 0, ord("A")))
+    assert op == link.OP_KEY and chr(n) == "A"
+    # a non-ASCII codepoint survives int32
+    op, _, _, n = link.unpack(link.pack(link.OP_KEY, 0, 0, ord("é")))
+    assert chr(n) == "é"
+
+
+def test_special_and_media_key_ids_are_unique():
+    ids = list(link.SPECIAL_KEYS.values()) + list(link.MEDIA_KEYS.values())
+    assert len(ids) == len(set(ids)), "key ids must be unique across the wire"
+
+
+def test_key_id_reverse_map_is_consistent():
+    for name, kid in {**link.SPECIAL_KEYS, **link.MEDIA_KEYS}.items():
+        assert link.KEY_ID_TO_NAME[kid] == name
+
+
+def test_tap_opcode_roundtrips():
+    op, _, _, n = link.unpack(link.pack(link.OP_TAP, 0, 0, link.SPECIAL_KEYS["ENTER"]))
+    assert op == link.OP_TAP
+    assert link.KEY_ID_TO_NAME[n] == "ENTER"

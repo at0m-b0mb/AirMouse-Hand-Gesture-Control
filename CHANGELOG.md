@@ -11,6 +11,11 @@ This project follows [Semantic Versioning](https://semver.org/).
   or many clients; token auth, `--demo`/`--dry-run` test modes, auto-reconnect,
   and an Esc kill-switch. New safe `src/link_protocol.py` (fixed-size `struct`
   frames + SHA-256 handshake — never pickle).
+- **Keyboard over the link** — the controller's virtual keyboard now types on
+  remote clients too (characters, Enter/arrows/Tab/Esc and media keys) via the
+  new `OP_KEY`/`OP_TAP` commands.
+- **Animated demo** (`assets/demo.svg`) in the README showing the glow cursor
+  tracking with cycling gestures.
 - **Guided walkthrough** in AirMouse Studio — first-run onboarding for
   permissions, gestures and launch, with a **? Tutorial** replay button and a
   *Don't show again* opt-out.

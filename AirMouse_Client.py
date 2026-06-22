@@ -38,10 +38,14 @@ class Applier:
 
     def _init_backend(self):
         self._backend = "none"
+        self._kbd = self._Key = self._pag = None
         try:
+            from pynput.keyboard import Controller as KbCtrl, Key
             from pynput.mouse import Button, Controller
             self._Button = Button
             self._m = Controller()
+            self._Key = Key
+            self._kbd = KbCtrl()
             self._backend = "pynput"
         except Exception:
             try:
@@ -58,6 +62,19 @@ class Applier:
             self._sw, self._sh = _pag.size()
         except Exception:
             self._sw, self._sh = 1920, 1080
+
+    # Wire key-id → pynput Key attribute / pyautogui key name.
+    _KEY_NAME = {
+        1: "backspace", 2: "enter", 3: "space", 4: "tab", 5: "esc",
+        6: "up", 7: "down", 8: "left", 9: "right",
+        10: "media_volume_up", 11: "media_volume_down",
+        12: "media_volume_mute", 13: "media_play_pause",
+    }
+    _PYAUTOGUI_KEY = {
+        1: "backspace", 2: "enter", 3: "space", 4: "tab", 5: "esc",
+        6: "up", 7: "down", 8: "left", 9: "right",
+        10: "volumeup", 11: "volumedown", 12: "volumemute", 13: "playpause",
+    }
 
     @property
     def backend(self) -> str:
@@ -128,6 +145,44 @@ class Applier:
             except Exception:
                 pass
 
+    def key(self, codepoint):
+        if self.dry_run:
+            return
+        try:
+            ch = chr(int(codepoint))
+        except (ValueError, OverflowError):
+            return
+        if self._backend == "pynput":
+            self._kbd.type(ch)
+        elif self._backend == "pyautogui":
+            self._pag.typewrite(ch, interval=0)
+
+    def tap(self, key_id):
+        if key_id == link.SPECIAL_KEYS["SCRNSHOT"]:
+            self._screenshot()
+            return
+        if self.dry_run:
+            return
+        if self._backend == "pynput":
+            name = self._KEY_NAME.get(key_id)
+            k = getattr(self._Key, name, None) if name else None
+            if k is not None:
+                self._kbd.press(k)
+                self._kbd.release(k)
+        elif self._backend == "pyautogui":
+            name = self._PYAUTOGUI_KEY.get(key_id)
+            if name:
+                self._pag.press(name)
+
+    def _screenshot(self):
+        if self.dry_run:
+            return
+        try:
+            from src import actions
+            actions.screenshot()
+        except Exception:
+            pass
+
     # ── dispatch ──────────────────────────────────────────────────────────────────
     def apply(self, op, ax, ay, n) -> str:
         if op == link.OP_MOVE:
@@ -140,6 +195,12 @@ class Applier:
             self.scroll(ax, ay)
         elif op == link.OP_DRAG:
             self.drag(bool(n))
+        elif op == link.OP_KEY:
+            self.key(n)
+            return f"type {chr(n)!r}" if 0 < n < 0x110000 else "type"
+        elif op == link.OP_TAP:
+            self.tap(n)
+            return f"tap {link.KEY_ID_TO_NAME.get(n, n)}"
         elif op == link.OP_PAUSE:
             return "paused" if n else "resumed"
         return link.OP_NAMES.get(op, "?")
